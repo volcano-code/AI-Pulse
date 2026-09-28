@@ -1,7 +1,7 @@
-# Optional PostgreSQL override. Migration/concurrency on PostgreSQL are NOT verified.
+# PostgreSQL + pgvector release-candidate override. CI must still prove migration/concurrency.
 services:
   postgres:
-    image: postgres:17
+    image: pgvector/pgvector:0.8.6-pg17
     environment:
       POSTGRES_DB: pulse
       POSTGRES_USER: pulse
