@@ -1,8 +1,10 @@
 import math
 import pytest
+from types import SimpleNamespace
 from sqlalchemy import select
 from app.embeddings import chunk_text, ensure_snapshot_chunks, vector_literal, write_embedding
-from app.hybrid_retrieval import reciprocal_rank_fusion, retrieval_status, vector_candidates
+from app import hybrid_retrieval
+from app.hybrid_retrieval import fuse_evidence, reciprocal_rank_fusion, retrieval_status, vector_candidates
 from app.models import EvidenceChunk, Snapshot
 
 
@@ -55,3 +57,43 @@ def test_hybrid_degradation_is_explicit():
     }
     assert retrieval_status("hybrid", vector_available=True)["effective_mode"] == "hybrid"
     assert retrieval_status("lexical", vector_available=False)["degraded"] is False
+
+
+def test_fuse_evidence_degrades_without_query_embedding(seeded):
+    factory = seeded.app.state.session_factory
+    lexical = [
+        {"snapshot_id": "s1", "article_id": "a1", "quote": "one"},
+        {"snapshot_id": "s2", "article_id": "a2", "quote": "two"},
+    ]
+    with factory() as db:
+        rows, status = fuse_evidence(
+            db, lexical, query_vector=None, embedding_model=None, final_limit=1
+        )
+    assert rows == lexical[:1]
+    assert status["effective_mode"] == "lexical"
+    assert status["degraded"] is True
+
+
+def test_fuse_evidence_rrf_prefers_vector_supported_snapshot(monkeypatch):
+    db = SimpleNamespace(bind=SimpleNamespace(dialect=SimpleNamespace(name="postgresql")))
+    lexical = [
+        {"snapshot_id": "s1", "article_id": "a1", "quote": "lexical one", "quote_start": 0, "quote_end": 11},
+        {"snapshot_id": "s2", "article_id": "a2", "quote": "lexical two", "quote_start": 0, "quote_end": 11},
+    ]
+
+    def fake_vector_candidates(db, query_vector, embedding_model, limit, allowed_snapshot_ids):
+        assert allowed_snapshot_ids == ["s1", "s2"]
+        return [{
+            "id": "c2", "snapshot_id": "s2", "ordinal": 0,
+            "text": "vector evidence", "start_offset": 7, "end_offset": 22,
+            "similarity": 0.91,
+        }]
+
+    monkeypatch.setattr(hybrid_retrieval, "vector_candidates", fake_vector_candidates)
+    rows, status = fuse_evidence(
+        db, lexical, query_vector=[1.0, 0.0], embedding_model="fixture-2d", final_limit=2
+    )
+    assert [row["snapshot_id"] for row in rows] == ["s2", "s1"]
+    assert rows[0]["quote"] == "vector evidence"
+    assert rows[0]["vector_similarity"] == pytest.approx(0.91)
+    assert status["effective_mode"] == "hybrid"
