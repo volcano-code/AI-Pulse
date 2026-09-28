@@ -3,6 +3,7 @@ from .config import Settings
 from .feeds import Entry, parse_feed
 from .models import Article, Snapshot, Source, FetchRun
 from .events import sync_events
+from .embeddings import ensure_snapshot_chunks
 from .textutil import canonical_url, clean_html, digest, topic_for
 from .timeutil import iso, utcnow
 
@@ -51,6 +52,7 @@ def ingest_entries(db, source: Source, entries: list[Entry], mode: str) -> dict:
             snap = Snapshot(article_id=article.id, title=title, text=body, content_hash=checksum)
             db.add(snap)
             db.flush()
+        ensure_snapshot_chunks(db, snap)
         article.current_snapshot_id, article.title = snap.id, title
         article.topic = topic_for(title + " " + body, source.id)
         article.updated_at = item.updated_at or article.updated_at

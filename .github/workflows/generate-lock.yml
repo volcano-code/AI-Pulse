@@ -1,0 +1,32 @@
+name: Generate frontend lockfile
+
+on:
+  push:
+    branches: ["dev/v0.5-hybrid-rag"]
+    paths:
+      - ".github/workflows/generate-lock.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  lock:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: dev/v0.5-hybrid-rag
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Generate exact npm lockfile
+        working-directory: apps/web
+        run: npm install --package-lock-only --ignore-scripts
+      - name: Commit lockfile
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add apps/web/package-lock.json
+          git diff --cached --quiet && exit 0
+          git commit -m "build(web): add npm lockfile"
+          git push origin HEAD:dev/v0.5-hybrid-rag

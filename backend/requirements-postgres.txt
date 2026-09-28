@@ -1,2 +1,3 @@
 -r requirements.txt
 psycopg[binary]>=3.2,<4
+# Native vector type is provided by the PostgreSQL extension; SQL uses explicit casts.

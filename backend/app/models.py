@@ -214,3 +214,19 @@ class Investigation(Base):
     trace: Mapped[list] = mapped_column(JSON, default=list)
     created_at: Mapped[str] = mapped_column(String(40), default=now)
     finished_at: Mapped[str | None] = mapped_column(String(40), nullable=True)
+
+class EvidenceChunk(Base):
+    __tablename__ = "evidence_chunks"
+    __table_args__ = (UniqueConstraint("snapshot_id", "ordinal"),)
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uid)
+    snapshot_id: Mapped[str] = mapped_column(ForeignKey("snapshots.id", ondelete="CASCADE"), index=True)
+    ordinal: Mapped[int] = mapped_column(Integer)
+    text: Mapped[str] = mapped_column(Text)
+    text_hash: Mapped[str] = mapped_column(String(64), index=True)
+    start_offset: Mapped[int] = mapped_column(Integer)
+    end_offset: Mapped[int] = mapped_column(Integer)
+    embedding_json: Mapped[list | None] = mapped_column(JSON, nullable=True)
+    embedding_model: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    embedding_dim: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    created_at: Mapped[str] = mapped_column(String(40), default=now)
+
