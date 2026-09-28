@@ -1,0 +1,44 @@
+name: Bootstrap AI Pulse v0.4 baseline
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/bootstrap-import.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Download validated v0.4.0-dev artifact
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 \
+            "https://58151443-ef86-425d-9a5c-e8d779d629dc.sandbox.floot.app/_cdn/static/4c350012-836e-4669-bfa1-d9275547333d-ai-pulse-v0.4.0-dev.zip" \
+            --output /tmp/ai-pulse.zip
+          rm -rf /tmp/ai-pulse-src
+          mkdir -p /tmp/ai-pulse-src
+          unzip -q /tmp/ai-pulse.zip -d /tmp/ai-pulse-src
+          test -f /tmp/ai-pulse-src/ai-pulse/README.md
+      - name: Import source tree
+        run: |
+          set -euo pipefail
+          rsync -a --delete \
+            --exclude ".git/" \
+            --exclude ".github/workflows/bootstrap-import.yml" \
+            /tmp/ai-pulse-src/ai-pulse/ ./
+          rm -f .github/workflows/bootstrap-import.yml
+      - name: Commit baseline
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Import AI Pulse v0.4.0-dev validated baseline"
+          git push origin HEAD:main
