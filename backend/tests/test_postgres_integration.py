@@ -26,6 +26,7 @@ def test_pgvector_extension_and_exact_cosine_search():
             source = Source(id="pgvector-test", name="pgvector test", url="https://example.com/feed",
                             kind="rss", enabled=True)
             db.add(source)
+            db.flush()  # PostgreSQL must observe the FK parent before the child fixture.
             article = Article(canonical_url="https://example.com/vector-test", source_id=source.id,
                               title="Vector test", data_mode="replay", topic="Agent")
             db.add(article); db.flush()
