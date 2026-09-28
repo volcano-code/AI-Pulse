@@ -29,11 +29,10 @@ jobs:
       - name: Import source tree
         run: |
           set -euo pipefail
-          rsync -a --delete \
+          rsync -a \
             --exclude ".git/" \
-            --exclude ".github/workflows/bootstrap-import.yml" \
+            --exclude ".github/workflows/" \
             /tmp/ai-pulse-src/ai-pulse/ ./
-          rm -f .github/workflows/bootstrap-import.yml
       - name: Commit baseline
         run: |
           set -euo pipefail
