@@ -1,0 +1,46 @@
+INFO  [alembic.runtime.migration] Context impl SQLiteImpl.
+INFO  [alembic.runtime.migration] Will assume non-transactional DDL.
+INFO  [alembic.runtime.plugins] setting up autogenerate plugin alembic.autogenerate.schemas
+INFO  [alembic.runtime.plugins] setting up autogenerate plugin alembic.autogenerate.tables
+INFO  [alembic.runtime.plugins] setting up autogenerate plugin alembic.autogenerate.types
+INFO  [alembic.runtime.plugins] setting up autogenerate plugin alembic.autogenerate.constraints
+INFO  [alembic.runtime.plugins] setting up autogenerate plugin alembic.autogenerate.defaults
+INFO  [alembic.runtime.plugins] setting up autogenerate plugin alembic.autogenerate.comments
+INFO  [alembic.autogenerate.compare.tables] Detected added table 'briefs'
+INFO  [alembic.autogenerate.compare.constraints] Detected added index 'ix_briefs_local_date' on '('local_date',)'
+INFO  [alembic.autogenerate.compare.tables] Detected added table 'runs'
+INFO  [alembic.autogenerate.compare.tables] Detected added table 'sources'
+INFO  [alembic.autogenerate.compare.tables] Detected added table 'workspace'
+INFO  [alembic.autogenerate.compare.tables] Detected added table 'articles'
+INFO  [alembic.autogenerate.compare.constraints] Detected added index 'ix_articles_published_at' on '('published_at',)'
+INFO  [alembic.autogenerate.compare.tables] Detected added table 'fetch_runs'
+INFO  [alembic.autogenerate.compare.tables] Detected added table 'snapshots'
+INFO  [alembic.autogenerate.compare.constraints] Detected added index 'ix_snapshots_article_id' on '('article_id',)'
+INFO  [alembic.autogenerate.compare.constraints] Detected added index 'ix_snapshots_content_hash' on '('content_hash',)'
+INFO  [alembic.autogenerate.compare.tables] Detected added table 'brief_items'
+INFO  [alembic.autogenerate.compare.constraints] Detected added index 'ix_brief_items_brief_id' on '('brief_id',)'
+Generating /mnt/data/ai-pulse/backend/migrations/versions/0001_initial_evidence_first_schema.py ...  done
+INFO  [alembic.runtime.migration] Context impl SQLiteImpl.
+INFO  [alembic.runtime.migration] Will assume non-transactional DDL.
+INFO  [alembic.runtime.migration] Running upgrade  -> 0001, initial evidence-first schema
+Revision ID: 0001
+Revises:
+INFO  [alembic.runtime.migration] Context impl SQLiteImpl.
+INFO  [alembic.runtime.migration] Will assume non-transactional DDL.
+INFO  [alembic.runtime.plugins] setting up autogenerate plugin alembic.autogenerate.schemas
+INFO  [alembic.runtime.plugins] setting up autogenerate plugin alembic.autogenerate.tables
+INFO  [alembic.runtime.plugins] setting up autogenerate plugin alembic.autogenerate.types
+INFO  [alembic.runtime.plugins] setting up autogenerate plugin alembic.autogenerate.constraints
+INFO  [alembic.runtime.plugins] setting up autogenerate plugin alembic.autogenerate.defaults
+INFO  [alembic.runtime.plugins] setting up autogenerate plugin alembic.autogenerate.comments
+No new upgrade operations detected.
+INFO  [alembic.runtime.migration] Context impl SQLiteImpl.
+INFO  [alembic.runtime.migration] Will assume non-transactional DDL.
+INFO  [alembic.runtime.migration] Running downgrade 0001 -> , initial evidence-first schema
+Revision ID: 0001
+Revises:
+INFO  [alembic.runtime.migration] Context impl SQLiteImpl.
+INFO  [alembic.runtime.migration] Will assume non-transactional DDL.
+INFO  [alembic.runtime.migration] Running upgrade  -> 0001, initial evidence-first schema
+Revision ID: 0001
+Revises:

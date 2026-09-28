@@ -1,0 +1,14 @@
+[
+  {"a":"LangGraph 1.2 released with durable agents","b":"LangGraph 1.2 release: durable agent runtime","same":true},
+  {"a":"AgentKit 2.0 released with tool budgets","b":"AgentKit 2.0 release adds tool budget controls","same":true},
+  {"a":"OpenAI launches GPT-6 mini preview","b":"GPT-6 mini enters public preview","same":true},
+  {"a":"Qwen3.5 发布：新增工具调用能力","b":"Qwen3.5 正式推出，支持工具调用","same":true},
+  {"a":"Claude Code 2.1 release notes","b":"Claude Code 2.1 发布说明","same":true},
+  {"a":"LangGraph 1.2 released with durable agents","b":"Vision benchmark for medical images","same":false},
+  {"a":"AgentKit 2.0 released with tool budgets","b":"AgentKit 1.8 security patch","same":false},
+  {"a":"Qwen3.5 发布：新增工具调用能力","b":"Qwen3.5-VL 图像理解评测","same":false},
+  {"a":"OpenAI launches GPT-6 mini preview","b":"OpenAI publishes safety research dataset","same":false},
+  {"a":"Claude Code 2.1 release notes","b":"Claude Sonnet reasoning benchmark","same":false},
+  {"a":"MCP Python SDK 2.0 released","b":"MCP Python SDK 2.0 发布","same":true},
+  {"a":"MCP Python SDK 2.0 released","b":"MCP TypeScript SDK 2.0 released","same":false}
+]

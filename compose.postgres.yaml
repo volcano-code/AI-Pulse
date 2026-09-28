@@ -1,0 +1,25 @@
+# Optional PostgreSQL override. Migration/concurrency on PostgreSQL are NOT verified.
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: pulse
+      POSTGRES_USER: pulse
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    volumes: ["postgres_data:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL","pg_isready -U pulse -d pulse"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+  api:
+    environment:
+      DATABASE_URL: postgresql+psycopg://pulse:${POSTGRES_PASSWORD}@postgres:5432/pulse
+    depends_on:
+      postgres:
+        condition: service_healthy
+  worker:
+    environment:
+      DATABASE_URL: postgresql+psycopg://pulse:${POSTGRES_PASSWORD}@postgres:5432/pulse
+volumes:
+  postgres_data:

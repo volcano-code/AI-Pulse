@@ -1,0 +1,116 @@
+INFO  [alembic.runtime.migration] Context impl SQLiteImpl.
+INFO  [alembic.runtime.migration] Will assume non-transactional DDL.
+INFO  [alembic.runtime.migration] Running upgrade  -> 0001, initial evidence-first schema
+Revision ID: 0001
+Revises:
+INFO  [alembic.runtime.migration] Running upgrade 0001 -> 0002, Durable job state, daily schedule, transactional email outbox.
+{
+  "seed": [
+    {
+      "inserted": 1,
+      "updated": 0,
+      "unchanged": 0,
+      "rejected": 0
+    },
+    {
+      "inserted": 1,
+      "updated": 0,
+      "unchanged": 0,
+      "rejected": 0
+    },
+    {
+      "inserted": 1,
+      "updated": 0,
+      "unchanged": 0,
+      "rejected": 0
+    },
+    {
+      "inserted": 1,
+      "updated": 0,
+      "unchanged": 0,
+      "rejected": 0
+    },
+    {
+      "inserted": 1,
+      "updated": 0,
+      "unchanged": 0,
+      "rejected": 0
+    },
+    {
+      "inserted": 1,
+      "updated": 0,
+      "unchanged": 0,
+      "rejected": 0
+    }
+  ],
+  "brief": {
+    "brief_id": "86cd331d-e398-4388-8518-885247c6aebf",
+    "cached": false,
+    "items": 6
+  }
+}
+
+AI Pulse | data=replay | http://127.0.0.1:8000 | Ctrl+C to stop
+AI Pulse durable worker started: localhost-1701-139da87c; delivery=file
+INFO:     Started server process [1702]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:51816 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51466 - "GET /api/v1/preferences HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51474 - "GET /api/v1/automation HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51488 - "GET /api/v1/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51498 - "GET /api/v1/sources HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51502 - "GET /api/v1/preferences HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51508 - "GET /api/v1/briefs/latest HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51516 - "GET /api/v1/snapshots/ed5bdea5-015c-4258-93f5-45ebc533804f HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51532 - "PATCH /api/v1/articles/80b5818d-c23e-4830-8faf-cb715e39c65b/bookmark HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51540 - "GET /api/v1/articles?bookmarked=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51546 - "PATCH /api/v1/articles/80b5818d-c23e-4830-8faf-cb715e39c65b/bookmark HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51562 - "GET /api/v1/sources HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51568 - "PATCH /api/v1/sources/arxiv HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51576 - "GET /api/v1/sources HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51582 - "PATCH /api/v1/sources/arxiv HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51590 - "GET /api/v1/sources HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51602 - "PUT /api/v1/preferences HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51604 - "GET /api/v1/preferences HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51620 - "PUT /api/v1/preferences HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51636 - "POST /api/v1/ask/stream HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51638 - "POST /api/v1/ask/stream HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51654 - "GET /api/v1/briefs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51664 - "GET /api/v1/briefs/86cd331d-e398-4388-8518-885247c6aebf HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51670 - "POST /api/v1/runs HTTP/1.1" 202 Accepted
+INFO:     127.0.0.1:51678 - "GET /api/v1/runs/0f78bcc8-b81f-46ba-a771-8d8ea144b227 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47458 - "GET /api/v1/runs/0f78bcc8-b81f-46ba-a771-8d8ea144b227 HTTP/1.1" 200 OK
+{'run_id': '0f78bcc8-b81f-46ba-a771-8d8ea144b227', 'delivery_id': None}
+INFO:     127.0.0.1:47470 - "GET /api/v1/runs/0f78bcc8-b81f-46ba-a771-8d8ea144b227 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47484 - "GET /api/v1/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47488 - "GET /api/v1/sources HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47496 - "GET /api/v1/preferences HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47500 - "GET /api/v1/briefs/latest HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47504 - "GET /api/v1/runs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47508 - "GET /api/v1/briefs/latest HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47524 - "GET /api/v1/automation HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47534 - "GET /api/v1/deliveries HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47540 - "PUT /api/v1/automation/schedule HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47548 - "GET /api/v1/automation HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47554 - "GET /api/v1/deliveries HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47560 - "GET /api/v1/automation HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47576 - "POST /api/v1/automation/run HTTP/1.1" 202 Accepted
+INFO:     127.0.0.1:47590 - "GET /api/v1/deliveries HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47594 - "GET /api/v1/deliveries HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47604 - "GET /api/v1/deliveries HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47612 - "GET /api/v1/deliveries HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47620 - "GET /api/v1/deliveries HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47622 - "GET /api/v1/deliveries HTTP/1.1" 200 OK
+{'run_id': 'dd7662e7-eea5-49bd-9456-ca1af0c9bb47', 'delivery_id': '55cf6361-91cf-4010-89d8-1d3b75a2c4d2'}
+INFO:     127.0.0.1:47630 - "GET /api/v1/deliveries HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47632 - "GET /api/v1/automation HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47642 - "GET /api/v1/deliveries HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47654 - "GET /api/v1/deliveries/55cf6361-91cf-4010-89d8-1d3b75a2c4d2/preview HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47668 - "PUT /api/v1/preferences HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47680 - "PUT /api/v1/automation/schedule HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [1702]

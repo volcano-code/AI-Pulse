@@ -1,0 +1,30 @@
+........................................................................ [ 59%]
+.................................................                        [100%]
+================================ tests coverage ================================
+_______________ coverage: platform linux, python 3.13.5-final-0 ________________
+
+Name               Stmts   Miss  Cover   Missing
+------------------------------------------------
+app/__init__.py        1      0   100%
+app/bootstrap.py      20      0   100%
+app/briefing.py       87      6    93%   108-113
+app/cli.py            31      1    97%   36
+app/config.py         38      1    97%   42
+app/db.py             17      0   100%
+app/demo.py           17      0   100%
+app/feeds.py          44      2    95%   19, 23
+app/fetcher.py        39      1    97%   36
+app/ingestion.py      78     16    79%   14-16, 20-21, 33, 42, 58, 62, 73-79
+app/jobs.py           55     11    80%   42-52
+app/llm.py            58      4    93%   39, 42, 66, 73
+app/main.py          176     11    94%   77, 122, 133-134, 140, 151, 173, 182, 208-209, 226
+app/models.py        106      0   100%
+app/retrieval.py      41      1    98%   15
+app/schemas.py        48      0   100%
+app/security.py       19      1    95%   15
+app/textutil.py       47      2    96%   37, 40
+app/timeutil.py       24      1    96%   13
+------------------------------------------------
+TOTAL                946     58    94%
+Coverage JSON written to file /mnt/data/ai-pulse-audit/baseline-coverage.json
+121 passed in 4.33s

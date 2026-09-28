@@ -1,0 +1,5 @@
+{
+  "command": "python -m app.cli ingest",
+  "status": "blocked-timeout",
+  "stderr": "Command '['/opt/pyvenv/bin/python', '-m', 'app.cli', 'ingest']' timed out after 25 seconds"
+}

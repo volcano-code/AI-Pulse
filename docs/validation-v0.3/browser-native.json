@@ -1,0 +1,7 @@
+{
+  "transport": "native-browser-http",
+  "tests": [],
+  "errors": [],
+  "status": "failed",
+  "error": "Page.goto: net::ERR_BLOCKED_BY_ADMINISTRATOR at http://127.0.0.1:8000/\nCall log:\n  - navigating to \"http://127.0.0.1:8000/\", waiting until \"load\"\n"
+}

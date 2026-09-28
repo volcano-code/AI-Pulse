@@ -1,0 +1,23 @@
+{
+  "python": "3.13.5",
+  "node": "22.16.0",
+  "npm": "10.9.2",
+  "tested_python_dependencies": {
+    "fastapi": "0.128.2",
+    "pydantic": "2.13.4",
+    "pydantic-settings": "2.14.1",
+    "sqlalchemy": "2.0.50",
+    "httpx": "0.28.1",
+    "uvicorn": "0.48.0",
+    "defusedxml": "0.7.1",
+    "alembic": "1.18.4",
+    "tzdata": "2026.2",
+    "pytest": "9.0.2",
+    "pytest-cov": "7.0.0",
+    "playwright": "1.57.0"
+  },
+  "frontend_dependency_installation": "not completed: registry DNS resolution failed",
+  "typescript_syntax_compiler": "5.8.3; project compiler version not installed",
+  "docker": "unavailable; configuration not executed",
+  "real_llm_calls": 0
+}

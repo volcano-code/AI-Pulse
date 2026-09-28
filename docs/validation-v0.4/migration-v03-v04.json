@@ -1,0 +1,185 @@
+{
+  "status": "passed",
+  "baseline": "actual v0.3.0 source",
+  "target": "0004",
+  "old_tables_before": {
+    "briefs": {
+      "rows": 1,
+      "sha256": "67b3c1dfd5bdb5811fa75e4bbdff2c6412c6e19406dac547988d94759f902e3a"
+    },
+    "sources": {
+      "rows": 3,
+      "sha256": "38346031261ff4ff359a9f915b07f239bdf236db92f8a74382a2efdf81bf0e2c"
+    },
+    "workspace": {
+      "rows": 1,
+      "sha256": "b577c9bd1f03b2e3e6467e45a5cbe2b6aeeb0f33e205f1b76732014f4bdf5523"
+    },
+    "articles": {
+      "rows": 6,
+      "sha256": "e72123387e3b8c63449a791a0d0f9606c09fa088a739e819a33c075a42796b91"
+    },
+    "fetch_runs": {
+      "rows": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "snapshots": {
+      "rows": 6,
+      "sha256": "d88f3407ba39f8a430a23427facd2d0f0a96a746cd3e854d08333e7b6d27fe8d"
+    },
+    "brief_items": {
+      "rows": 6,
+      "sha256": "60ad3691e6639eadc2a6e67735a5efcf242cd8351f87fe12e8044d98b8d7a81b"
+    },
+    "runs": {
+      "rows": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "daily_schedule": {
+      "rows": 1,
+      "sha256": "89e3ac8c580b126861b8001ded725a9639cba3ce1e6c25cf4840287e1c763787"
+    },
+    "deliveries": {
+      "rows": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "worker_heartbeats": {
+      "rows": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "reading_states": {
+      "rows": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "investigations": {
+      "rows": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "old_tables_after": {
+    "briefs": {
+      "rows": 1,
+      "sha256": "67b3c1dfd5bdb5811fa75e4bbdff2c6412c6e19406dac547988d94759f902e3a"
+    },
+    "sources": {
+      "rows": 3,
+      "sha256": "38346031261ff4ff359a9f915b07f239bdf236db92f8a74382a2efdf81bf0e2c"
+    },
+    "workspace": {
+      "rows": 1,
+      "sha256": "b577c9bd1f03b2e3e6467e45a5cbe2b6aeeb0f33e205f1b76732014f4bdf5523"
+    },
+    "articles": {
+      "rows": 6,
+      "sha256": "e72123387e3b8c63449a791a0d0f9606c09fa088a739e819a33c075a42796b91"
+    },
+    "fetch_runs": {
+      "rows": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "snapshots": {
+      "rows": 6,
+      "sha256": "d88f3407ba39f8a430a23427facd2d0f0a96a746cd3e854d08333e7b6d27fe8d"
+    },
+    "brief_items": {
+      "rows": 6,
+      "sha256": "60ad3691e6639eadc2a6e67735a5efcf242cd8351f87fe12e8044d98b8d7a81b"
+    },
+    "runs": {
+      "rows": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "daily_schedule": {
+      "rows": 1,
+      "sha256": "89e3ac8c580b126861b8001ded725a9639cba3ce1e6c25cf4840287e1c763787"
+    },
+    "deliveries": {
+      "rows": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "worker_heartbeats": {
+      "rows": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "reading_states": {
+      "rows": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "investigations": {
+      "rows": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "new_tables": [
+    "events",
+    "event_articles",
+    "event_versions"
+  ],
+  "steps": [
+    {
+      "command": [
+        "-m",
+        "alembic",
+        "upgrade",
+        "head"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "INFO  [alembic.runtime.migration] Context impl SQLiteImpl.\nINFO  [alembic.runtime.migration] Will assume non-transactional DDL.\nINFO  [alembic.runtime.migration] Running upgrade  -> 0001, initial evidence-first schema\nRevision ID: 0001\nRevises:\nINFO  [alembic.runtime.migration] Running upgrade 0001 -> 0002, Durable job state, daily schedule, transactional email outbox.\nINFO  [alembic.runtime.migration] Running upgrade 0002 -> 0003, Read-version memory and persisted bounded research traces.\n"
+    },
+    {
+      "command": [
+        "-m",
+        "app.cli",
+        "demo"
+      ],
+      "exit_code": 0,
+      "stdout": "{\n  \"seed\": [\n    {\n      \"inserted\": 1,\n      \"updated\": 0,\n      \"unchanged\": 0,\n      \"rejected\": 0\n    },\n    {\n      \"inserted\": 1,\n      \"updated\": 0,\n      \"unchanged\": 0,\n      \"rejected\": 0\n    },\n    {\n      \"inserted\": 1,\n      \"updated\": 0,\n      \"unchanged\": 0,\n      \"rejected\": 0\n    },\n    {\n      \"inserted\": 1,\n      \"updated\": 0,\n      \"unchanged\": 0,\n      \"rejected\": 0\n    },\n    {\n      \"inserted\": 1,\n      \"updated\": 0,\n      \"unchanged\": 0,\n      \"rejected\": 0\n    },\n    {\n      \"inserted\": 1,\n      \"updated\": 0,\n      \"unchanged\": 0,\n      \"rejected\": 0\n    }\n  ],\n  \"brief\": {\n    \"brief_id\": \"a68261bd-bfc1-4bd6-a7ec-755b89267868\",\n    \"cached\": false,\n    \"items\": 6\n  }\n}\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "-m",
+        "alembic",
+        "upgrade",
+        "head"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "INFO  [alembic.runtime.migration] Context impl SQLiteImpl.\nINFO  [alembic.runtime.migration] Will assume non-transactional DDL.\nINFO  [alembic.runtime.migration] Running upgrade 0003 -> 0004, Stable event grouping and event-version history.\n"
+    },
+    {
+      "command": [
+        "-m",
+        "alembic",
+        "check"
+      ],
+      "exit_code": 0,
+      "stdout": "No new upgrade operations detected.\n",
+      "stderr": "INFO  [alembic.runtime.migration] Context impl SQLiteImpl.\nINFO  [alembic.runtime.migration] Will assume non-transactional DDL.\nINFO  [alembic.runtime.plugins] setting up autogenerate plugin alembic.autogenerate.schemas\nINFO  [alembic.runtime.plugins] setting up autogenerate plugin alembic.autogenerate.tables\nINFO  [alembic.runtime.plugins] setting up autogenerate plugin alembic.autogenerate.types\nINFO  [alembic.runtime.plugins] setting up autogenerate plugin alembic.autogenerate.constraints\nINFO  [alembic.runtime.plugins] setting up autogenerate plugin alembic.autogenerate.defaults\nINFO  [alembic.runtime.plugins] setting up autogenerate plugin alembic.autogenerate.comments\n"
+    },
+    {
+      "command": [
+        "-m",
+        "alembic",
+        "downgrade",
+        "0003"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "INFO  [alembic.runtime.migration] Context impl SQLiteImpl.\nINFO  [alembic.runtime.migration] Will assume non-transactional DDL.\nINFO  [alembic.runtime.migration] Running downgrade 0004 -> 0003, Stable event grouping and event-version history.\n"
+    },
+    {
+      "command": [
+        "-m",
+        "alembic",
+        "upgrade",
+        "head"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "INFO  [alembic.runtime.migration] Context impl SQLiteImpl.\nINFO  [alembic.runtime.migration] Will assume non-transactional DDL.\nINFO  [alembic.runtime.migration] Running upgrade 0003 -> 0004, Stable event grouping and event-version history.\n"
+    }
+  ],
+  "scope": "disposable SQLite only; PostgreSQL/Docker still unverified"
+}

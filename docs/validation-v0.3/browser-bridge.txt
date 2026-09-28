@@ -1,0 +1,61 @@
+{
+  "transport": "python-httpx-bridge",
+  "frontend": "FastAPI native JS acceptance UI, NOT Next.js",
+  "data": "synthetic replay",
+  "tests": [
+    {
+      "name": "six database-backed synthetic cards and visible REPLAY marker",
+      "status": "passed"
+    },
+    {
+      "name": "existing evidence dialog still highlights exact source text",
+      "status": "passed"
+    },
+    {
+      "name": "new read-version page loads real API data",
+      "status": "passed"
+    },
+    {
+      "name": "read button writes the exact displayed snapshot to SQLite",
+      "status": "passed"
+    },
+    {
+      "name": "same-URL source update is distinguished from already-read version",
+      "status": "passed"
+    },
+    {
+      "name": "text differences are visible and explicitly not labelled verified event facts",
+      "status": "passed"
+    },
+    {
+      "name": "unread action reverses the read marker",
+      "status": "passed"
+    },
+    {
+      "name": "research executes local tools, displays evidence and accurately reports zero model calls",
+      "status": "passed"
+    },
+    {
+      "name": "completed investigation and tool audit are persisted in the backend",
+      "status": "passed"
+    },
+    {
+      "name": "saved research can be reopened after navigating away",
+      "status": "passed"
+    },
+    {
+      "name": "unanswerable question returns no invented citations",
+      "status": "passed"
+    },
+    {
+      "name": "research page has no horizontal overflow at 390px width",
+      "status": "passed"
+    },
+    {
+      "name": "no uncaught JavaScript errors",
+      "status": "passed"
+    }
+  ],
+  "errors": [],
+  "status": "passed"
+}

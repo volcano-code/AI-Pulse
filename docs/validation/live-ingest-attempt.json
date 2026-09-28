@@ -1,0 +1,24 @@
+{
+  "run_id": "5dcdbcf7-584c-475d-b304-1617bc8364ff",
+  "status": "failed",
+  "result": {
+    "sources": [
+      {
+        "source_id": "arxiv",
+        "status": "failed",
+        "error": "gaierror: source fetch/parse failed; check URL, network and feed format"
+      },
+      {
+        "source_id": "huggingface",
+        "status": "failed",
+        "error": "gaierror: source fetch/parse failed; check URL, network and feed format"
+      },
+      {
+        "source_id": "langgraph",
+        "status": "failed",
+        "error": "gaierror: source fetch/parse failed; check URL, network and feed format"
+      }
+    ]
+  },
+  "error": null
+}

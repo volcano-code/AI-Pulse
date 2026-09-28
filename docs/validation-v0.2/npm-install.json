@@ -1,0 +1,6 @@
+{
+  "command": "npm install --package-lock-only --ignore-scripts --fetch-retries=0 --fetch-timeout=5000",
+  "status": "blocked-timeout",
+  "stdout": null,
+  "stderr": null
+}

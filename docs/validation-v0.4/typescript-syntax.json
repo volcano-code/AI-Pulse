@@ -1,0 +1,6 @@
+{
+  "compiler": "5.8.3",
+  "scope": "Syntax only; not typecheck, dependency resolution or Next.js build",
+  "files": 12,
+  "errors": []
+}

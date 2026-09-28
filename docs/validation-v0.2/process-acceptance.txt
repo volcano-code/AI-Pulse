@@ -1,0 +1,49 @@
+{
+  "mode": "synthetic-replay",
+  "smtp_submissions": 0,
+  "model_requests": 0,
+  "checks": [
+    "Abrupt process death leaves the claimed task persisted",
+    "A new real worker recovers the same task on its second attempt",
+    "The recovered daily pipeline writes exactly one local outbox file",
+    "Another fresh worker process produces no duplicate delivery"
+  ],
+  "killed_child_exitcode": -9,
+  "task_status": "succeeded",
+  "attempts": 2,
+  "deliveries": 1,
+  "delivery_status": "file_written",
+  "commands": [
+    {
+      "command": "python -m alembic upgrade head",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "INFO  [alembic.runtime.migration] Context impl SQLiteImpl.\nINFO  [alembic.runtime.migration] Will assume non-transactional DDL.\nINFO  [alembic.runtime.migration] Running upgrade  -> 0001, initial evidence-first schema\nRevision ID: 0001\nRevises:\nINFO  [alembic.runtime.migration] Running upgrade 0001 -> 0002, Durable job state, daily schedule, transactional email outbox.\n"
+    },
+    {
+      "command": "python -m app.cli demo",
+      "returncode": 0,
+      "stdout": "{\n  \"seed\": [\n    {\n      \"inserted\": 1,\n      \"updated\": 0,\n      \"unchanged\": 0,\n      \"rejected\": 0\n    },\n    {\n      \"inserted\": 1,\n      \"updated\": 0,\n      \"unchanged\": 0,\n      \"rejected\": 0\n    },\n    {\n      \"inserted\": 1,\n      \"updated\": 0,\n      \"unchanged\": 0,\n      \"rejected\": 0\n    },\n    {\n      \"inserted\": 1,\n      \"updated\": 0,\n      \"unchanged\": 0,\n      \"rejected\": 0\n    },\n    {\n      \"inserted\": 1,\n      \"updated\": 0,\n      \"unchanged\": 0,\n      \"rejected\": 0\n    },\n    {\n      \"inserted\": 1,\n      \"updated\": 0,\n      \"unchanged\": 0,\n      \"rejected\": 0\n    }\n  ],\n  \"brief\": {\n    \"brief_id\": \"f680feba-d01a-48d2-8b01-c6b0991de0a4\",\n    \"cached\": false,\n    \"items\": 6\n  }\n}\n",
+      "stderr": ""
+    },
+    {
+      "command": "python -m app.worker --once",
+      "returncode": 0,
+      "stdout": "AI Pulse durable worker started: localhost-2371-98971b81; delivery=file\n",
+      "stderr": ""
+    },
+    {
+      "command": "python -m app.worker --once",
+      "returncode": 0,
+      "stdout": "AI Pulse durable worker started: localhost-2382-7ae98d9f; delivery=file\n{'run_id': '022e93c3-debf-4f0d-924f-2ad2e85e1afa', 'delivery_id': '40922e7a-329d-4690-bbba-3a7d96d2e424'}\n",
+      "stderr": ""
+    },
+    {
+      "command": "python -m app.worker --once",
+      "returncode": 0,
+      "stdout": "AI Pulse durable worker started: localhost-2394-5e02c529; delivery=file\n",
+      "stderr": ""
+    }
+  ],
+  "passed": true
+}

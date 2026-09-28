@@ -1,0 +1,81 @@
+{
+  "ui": "backend/app/static (NOT Next.js)",
+  "transport": "Python HTTP bridge to real local API; browser networking disabled",
+  "passed": 18,
+  "failed": 0,
+  "uncaught_js_errors": [],
+  "cases": [
+    {
+      "case": "replay marker and six real database-backed cards",
+      "status": "passed"
+    },
+    {
+      "case": "evidence dialog highlights the exact cited substring",
+      "status": "passed"
+    },
+    {
+      "case": "accessible evidence dialog closes correctly",
+      "status": "passed"
+    },
+    {
+      "case": "bookmark writes persist in the backend and are reversible",
+      "status": "passed"
+    },
+    {
+      "case": "source enabled state persists and toggles back",
+      "status": "passed"
+    },
+    {
+      "case": "timezone preference saves through the API",
+      "status": "passed"
+    },
+    {
+      "case": "SSE protocol is consumed and displays cited snippets",
+      "status": "passed"
+    },
+    {
+      "case": "unmatched question abstains instead of fabricating an answer",
+      "status": "passed"
+    },
+    {
+      "case": "historical edition loads saved items",
+      "status": "passed"
+    },
+    {
+      "case": "generation task completes and exposes persisted run events",
+      "status": "passed"
+    },
+    {
+      "case": "390px mobile viewport has no horizontal overflow",
+      "status": "passed"
+    },
+    {
+      "case": "automation view distinguishes local file preview and reports worker heartbeat",
+      "status": "passed"
+    },
+    {
+      "case": "daily schedule settings persist through the actual API",
+      "status": "passed"
+    },
+    {
+      "case": "independent worker completes daily job and writes local email preview",
+      "status": "passed"
+    },
+    {
+      "case": "preview artifact is served with a synthetic-data marker",
+      "status": "passed"
+    },
+    {
+      "case": "automation view fits 390px mobile viewport",
+      "status": "passed"
+    },
+    {
+      "case": "no uncaught JavaScript errors during all interactions",
+      "status": "passed"
+    },
+    {
+      "case": "Unicode code-point slicing agrees with backend offsets",
+      "status": "passed"
+    }
+  ]
+}

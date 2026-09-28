@@ -1,0 +1,51 @@
+# Supplied configuration only. Docker execution remains unverified in this delivery.
+x-pulse-environment: &pulse-environment
+  DATABASE_URL: sqlite:////app/data/live.db
+  DATA_MODE: live
+  TASK_MODE: durable
+  AUTO_INIT_DB: "false"
+  ADMIN_TOKEN: ${ADMIN_TOKEN:?Run python scripts/create_compose_env.py first}
+  TIMEZONE: ${TIMEZONE:-America/Los_Angeles}
+  LLM_MODE: ${LLM_MODE:-extractive}
+  LLM_BASE_URL: ${LLM_BASE_URL:-https://api.openai.com/v1}
+  LLM_MODEL: ${LLM_MODEL:-}
+  LLM_API_KEY: ${LLM_API_KEY:-}
+  DELIVERY_TRANSPORT: ${DELIVERY_TRANSPORT:-file}
+  OUTBOX_DIR: /app/data/outbox/live
+  MAIL_FROM: ${MAIL_FROM:-ai-pulse@example.invalid}
+  MAIL_TO: ${MAIL_TO:-reader@example.invalid}
+  SMTP_HOST: ${SMTP_HOST:-}
+  SMTP_PORT: ${SMTP_PORT:-587}
+  SMTP_SECURITY: ${SMTP_SECURITY:-starttls}
+  SMTP_USERNAME: ${SMTP_USERNAME:-}
+  SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+services:
+  api:
+    build: ./backend
+    environment: *pulse-environment
+    ports: ["127.0.0.1:8000:8000"]
+    volumes: ["pulse_data:/app/data"]
+    healthcheck:
+      test: ["CMD","python","-c","import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+  worker:
+    build: ./backend
+    environment: *pulse-environment
+    command: ["python", "-m", "app.worker"]
+    volumes: ["pulse_data:/app/data"]
+    depends_on:
+      api:
+        condition: service_healthy
+  web:
+    build:
+      context: ./apps/web
+      args:
+        API_INTERNAL_URL: http://api:8000
+    ports: ["127.0.0.1:3000:3000"]
+    depends_on:
+      api:
+        condition: service_healthy
+volumes:
+  pulse_data:

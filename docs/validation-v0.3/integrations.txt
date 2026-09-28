@@ -1,0 +1,41 @@
+{
+  "checked_at_utc": "2026-09-28T03:56:19.072957+00:00",
+  "python": "3.13.5",
+  "node": "v22.16.0",
+  "docker_available": false,
+  "paid_model_calls": 0,
+  "smtp_submissions": 0,
+  "dependencies": {
+    "fastapi": "0.128.2",
+    "pydantic": "2.13.4",
+    "sqlalchemy": "2.0.50",
+    "httpx": "0.28.1",
+    "alembic": "1.18.4",
+    "langgraph": null,
+    "celery": null,
+    "redis": null
+  },
+  "feed_checks": [
+    {
+      "source_id": "arxiv",
+      "status": "failed",
+      "error": "FetchError: source fetch/parse failed; check URL, network and feed format",
+      "elapsed_seconds": 1.089
+    },
+    {
+      "source_id": "huggingface",
+      "status": "failed",
+      "error": "FetchError: source fetch/parse failed; check URL, network and feed format",
+      "elapsed_seconds": 1.096
+    },
+    {
+      "source_id": "langgraph",
+      "status": "failed",
+      "error": "FetchDeadlineExceeded: source fetch/parse failed; check URL, network and feed format",
+      "elapsed_seconds": 3.012
+    }
+  ],
+  "live_articles_saved": 0,
+  "live_feeds_gate": "blocked_or_failed",
+  "nextjs_build": "not_validated"
+}

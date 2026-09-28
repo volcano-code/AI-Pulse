@@ -1,0 +1,89 @@
+FFFF                                                                     [100%]
+=================================== FAILURES ===================================
+________________ test_other_source_cannot_overwrite_provenance _________________
+
+client = <starlette.testclient.TestClient object at 0x7fd3d476d160>
+
+    def test_other_source_cannot_overwrite_provenance(client):
+        f = client.app.state.session_factory
+        with f.begin() as db:
+            original = Entry('Original publisher', 'https://example.com/shared',
+                             'Original article with a traceable source.', iso(utcnow()))
+            ingest_entries(db, db.get(Source, 'huggingface'), [original], 'replay')
+            foreign = Entry('Conflicting publisher', original.url,
+                            'Different content published by another feed.', original.published_at)
+            counts = ingest_entries(db, db.get(Source, 'langgraph'), [foreign], 'replay')
+            article = db.scalar(select(Article).where(Article.canonical_url == original.url))
+>           assert counts['rejected'] == 1
+E           assert 0 == 1
+
+tests/test_quality_regressions.py:21: AssertionError
+_____________ test_all_rejected_entries_do_not_mark_source_healthy _____________
+
+client = <starlette.testclient.TestClient object at 0x7fd3d454a210>
+
+    def test_all_rejected_entries_do_not_mark_source_healthy(client):
+        class InvalidFeed:
+            def fetch(self, url):
+                return b'<rss><channel><item><title>Bad link</title><link>javascript:alert(1)</link><description>Nonempty text</description></item></channel></rss>'
+        f = client.app.state.session_factory
+        settings = client.app.state.settings.model_copy(update={'data_mode': 'live'})
+        result = fetch_source(f, 'huggingface', settings, InvalidFeed())
+>       assert result['status'] == 'failed'
+E       AssertionError: assert 'succeeded' == 'failed'
+E         
+E         - failed
+E         + succeeded
+
+tests/test_quality_regressions.py:33: AssertionError
+________ test_successful_poll_timestamp_alone_does_not_make_new_edition ________
+
+seeded = <starlette.testclient.TestClient object at 0x7fd3d45a3d90>
+
+    def test_successful_poll_timestamp_alone_does_not_make_new_edition(seeded):
+        f, settings = seeded.app.state.session_factory, seeded.app.state.settings
+        with f.begin() as db:
+            db.get(Source, 'huggingface').last_success_at = iso(utcnow() - timedelta(minutes=10))
+        first = build_brief(f, settings)
+        with f.begin() as db:
+            db.get(Source, 'huggingface').last_success_at = iso(utcnow())
+        second = build_brief(f, settings)
+>       assert first['brief_id'] == second['brief_id']
+E       AssertionError: assert '7091aa15-04e...-32c8e68e3740' == 'e02fea6e-61a...-b5c0515c0eb0'
+E         
+E         - e02fea6e-61aa-44d6-9f54-b5c0515c0eb0
+E         + 7091aa15-04e4-4683-9569-32c8e68e3740
+
+tests/test_quality_regressions.py:48: AssertionError
+_______________ test_snapshot_captured_after_cutoff_is_not_used ________________
+
+client = <starlette.testclient.TestClient object at 0x7fd3d431d350>
+
+    def test_snapshot_captured_after_cutoff_is_not_used(client):
+        from app.models import Snapshot
+        f, settings = client.app.state.session_factory, client.app.state.settings
+        cutoff = utcnow()
+        with f.begin() as db:
+            entry = Entry('Updated after cutoff', 'https://example.com/late-snapshot',
+                          'This content was only captured after the report cutoff.',
+                          iso(cutoff - timedelta(hours=1)))
+            ingest_entries(db, db.get(Source, 'langgraph'), [entry], 'replay')
+            article = db.scalar(select(Article).where(Article.canonical_url == entry.url))
+            article.first_seen_at = iso(cutoff - timedelta(hours=1))
+            db.get(Snapshot, article.current_snapshot_id).captured_at = iso(cutoff + timedelta(minutes=1))
+>       assert build_brief(f, settings, cutoff=cutoff)['items'] == 0
+E       assert 1 == 0
+
+tests/test_quality_regressions.py:64: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_quality_regressions.py::test_other_source_cannot_overwrite_provenance - assert 0 == 1
+FAILED tests/test_quality_regressions.py::test_all_rejected_entries_do_not_mark_source_healthy - AssertionError: assert 'succeeded' == 'failed'
+  
+  - failed
+  + succeeded
+FAILED tests/test_quality_regressions.py::test_successful_poll_timestamp_alone_does_not_make_new_edition - AssertionError: assert '7091aa15-04e...-32c8e68e3740' == 'e02fea6e-61a...-b5c0515c0eb0'
+  
+  - e02fea6e-61aa-44d6-9f54-b5c0515c0eb0
+  + 7091aa15-04e4-4683-9569-32c8e68e3740
+FAILED tests/test_quality_regressions.py::test_snapshot_captured_after_cutoff_is_not_used - assert 1 == 0
+4 failed in 0.32s

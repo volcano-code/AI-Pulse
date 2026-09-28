@@ -1,0 +1,354 @@
+[
+  {
+    "file": ".dockerignore",
+    "ok": true
+  },
+  {
+    "file": ".github/workflows/ci.yml",
+    "ok": true
+  },
+  {
+    "file": ".gitignore",
+    "ok": true
+  },
+  {
+    "file": "LICENSE",
+    "ok": true
+  },
+  {
+    "file": "Makefile",
+    "ok": true
+  },
+  {
+    "file": "README.md",
+    "ok": true
+  },
+  {
+    "file": "apps/web/.dockerignore",
+    "ok": true
+  },
+  {
+    "file": "apps/web/.env.example",
+    "ok": true
+  },
+  {
+    "file": "apps/web/Dockerfile",
+    "ok": true
+  },
+  {
+    "file": "apps/web/next-env.d.ts",
+    "ok": true
+  },
+  {
+    "file": "apps/web/next.config.ts",
+    "ok": true
+  },
+  {
+    "file": "apps/web/package.json",
+    "ok": true
+  },
+  {
+    "file": "apps/web/playwright.config.ts",
+    "ok": true
+  },
+  {
+    "file": "apps/web/postcss.config.mjs",
+    "ok": true
+  },
+  {
+    "file": "apps/web/src/app/base.css",
+    "ok": true
+  },
+  {
+    "file": "apps/web/src/app/globals.css",
+    "ok": true
+  },
+  {
+    "file": "apps/web/src/app/layout.tsx",
+    "ok": true
+  },
+  {
+    "file": "apps/web/src/app/page.tsx",
+    "ok": true
+  },
+  {
+    "file": "apps/web/src/app/providers.tsx",
+    "ok": true
+  },
+  {
+    "file": "apps/web/src/components/dashboard.tsx",
+    "ok": true
+  },
+  {
+    "file": "apps/web/src/lib/api.ts",
+    "ok": true
+  },
+  {
+    "file": "apps/web/src/lib/types.ts",
+    "ok": true
+  },
+  {
+    "file": "apps/web/src/lib/unicode.ts",
+    "ok": true
+  },
+  {
+    "file": "apps/web/tests/workspace.spec.ts",
+    "ok": true
+  },
+  {
+    "file": "apps/web/tsconfig.json",
+    "ok": true
+  },
+  {
+    "file": "backend/.dockerignore",
+    "ok": true
+  },
+  {
+    "file": "backend/.env.example",
+    "ok": true
+  },
+  {
+    "file": "backend/Dockerfile",
+    "ok": true
+  },
+  {
+    "file": "backend/alembic.ini",
+    "ok": true
+  },
+  {
+    "file": "backend/app/__init__.py",
+    "ok": true
+  },
+  {
+    "file": "backend/app/bootstrap.py",
+    "ok": true
+  },
+  {
+    "file": "backend/app/briefing.py",
+    "ok": true
+  },
+  {
+    "file": "backend/app/cli.py",
+    "ok": true
+  },
+  {
+    "file": "backend/app/config.py",
+    "ok": true
+  },
+  {
+    "file": "backend/app/db.py",
+    "ok": true
+  },
+  {
+    "file": "backend/app/demo.py",
+    "ok": true
+  },
+  {
+    "file": "backend/app/feeds.py",
+    "ok": true
+  },
+  {
+    "file": "backend/app/fetcher.py",
+    "ok": true
+  },
+  {
+    "file": "backend/app/ingestion.py",
+    "ok": true
+  },
+  {
+    "file": "backend/app/jobs.py",
+    "ok": true
+  },
+  {
+    "file": "backend/app/llm.py",
+    "ok": true
+  },
+  {
+    "file": "backend/app/main.py",
+    "ok": true
+  },
+  {
+    "file": "backend/app/models.py",
+    "ok": true
+  },
+  {
+    "file": "backend/app/retrieval.py",
+    "ok": true
+  },
+  {
+    "file": "backend/app/schemas.py",
+    "ok": true
+  },
+  {
+    "file": "backend/app/security.py",
+    "ok": true
+  },
+  {
+    "file": "backend/app/static/app.css",
+    "ok": true
+  },
+  {
+    "file": "backend/app/static/app.js",
+    "ok": true
+  },
+  {
+    "file": "backend/app/static/index.html",
+    "ok": true
+  },
+  {
+    "file": "backend/app/textutil.py",
+    "ok": true
+  },
+  {
+    "file": "backend/app/timeutil.py",
+    "ok": true
+  },
+  {
+    "file": "backend/migrations/env.py",
+    "ok": true
+  },
+  {
+    "file": "backend/migrations/script.py.mako",
+    "ok": true
+  },
+  {
+    "file": "backend/migrations/versions/0001_initial_evidence_first_schema.py",
+    "ok": true
+  },
+  {
+    "file": "backend/pytest.ini",
+    "ok": true
+  },
+  {
+    "file": "backend/requirements-dev.txt",
+    "ok": true
+  },
+  {
+    "file": "backend/requirements-postgres.txt",
+    "ok": true
+  },
+  {
+    "file": "backend/requirements.txt",
+    "ok": true
+  },
+  {
+    "file": "backend/tests/conftest.py",
+    "ok": true
+  },
+  {
+    "file": "backend/tests/test_api.py",
+    "ok": true
+  },
+  {
+    "file": "backend/tests/test_cli.py",
+    "ok": true
+  },
+  {
+    "file": "backend/tests/test_core.py",
+    "ok": true
+  },
+  {
+    "file": "backend/tests/test_llm.py",
+    "ok": true
+  },
+  {
+    "file": "backend/tests/test_network.py",
+    "ok": true
+  },
+  {
+    "file": "backend/tests/test_pipeline.py",
+    "ok": true
+  },
+  {
+    "file": "compose.postgres.yaml",
+    "ok": true
+  },
+  {
+    "file": "compose.yaml",
+    "ok": true
+  },
+  {
+    "file": "contracts/openapi.json",
+    "ok": true
+  },
+  {
+    "file": "docs/ARCHITECTURE.md",
+    "ok": true
+  },
+  {
+    "file": "docs/NEXT_TASKS.md",
+    "ok": true
+  },
+  {
+    "file": "docs/VALIDATION.md",
+    "ok": true
+  },
+  {
+    "file": "docs/screenshots/dashboard.png",
+    "ok": true
+  },
+  {
+    "file": "docs/screenshots/evidence.png",
+    "ok": true
+  },
+  {
+    "file": "docs/screenshots/mobile.png",
+    "ok": true
+  },
+  {
+    "file": "docs/validation/browser-acceptance.json",
+    "ok": true
+  },
+  {
+    "file": "docs/validation/coverage.json",
+    "ok": true
+  },
+  {
+    "file": "docs/validation/environment.json",
+    "ok": true
+  },
+  {
+    "file": "docs/validation/live-ingest-attempt.json",
+    "ok": true
+  },
+  {
+    "file": "docs/validation/migration.txt",
+    "ok": true
+  },
+  {
+    "file": "docs/validation/npm-network.txt",
+    "ok": true
+  },
+  {
+    "file": "docs/validation/pytest.txt",
+    "ok": true
+  },
+  {
+    "file": "docs/validation/pytest.xml",
+    "ok": true
+  },
+  {
+    "file": "docs/validation/startup-smoke.txt",
+    "ok": true
+  },
+  {
+    "file": "docs/validation/typescript-syntax.json",
+    "ok": true
+  },
+  {
+    "file": "scripts/browser_acceptance.py",
+    "ok": true
+  },
+  {
+    "file": "scripts/check_ts_syntax.cjs",
+    "ok": true
+  },
+  {
+    "file": "scripts/create_compose_env.py",
+    "ok": true
+  },
+  {
+    "file": "scripts/run_local.py",
+    "ok": true
+  }
+]

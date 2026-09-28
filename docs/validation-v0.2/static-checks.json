@@ -1,0 +1,10 @@
+{
+  "python_compile": true,
+  "yaml_parse_only": {
+    "compose.yaml": true,
+    "compose.postgres.yaml": true,
+    ".github/workflows/ci.yml": true
+  },
+  "openapi_paths": 25,
+  "javascript_syntax": true
+}

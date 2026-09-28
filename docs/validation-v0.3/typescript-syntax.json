@@ -1,0 +1,56 @@
+{
+  "check": "TypeScript transpileModule syntax only; NOT tsc typecheck, npm install, Next.js build or E2E",
+  "typescript": "5.8.3",
+  "files": 12,
+  "passed": true,
+  "results": [
+    {
+      "file": "apps/web/next.config.ts",
+      "errors": []
+    },
+    {
+      "file": "apps/web/playwright.config.ts",
+      "errors": []
+    },
+    {
+      "file": "apps/web/src/app/layout.tsx",
+      "errors": []
+    },
+    {
+      "file": "apps/web/src/app/page.tsx",
+      "errors": []
+    },
+    {
+      "file": "apps/web/src/app/providers.tsx",
+      "errors": []
+    },
+    {
+      "file": "apps/web/src/components/automation-panel.tsx",
+      "errors": []
+    },
+    {
+      "file": "apps/web/src/components/dashboard.tsx",
+      "errors": []
+    },
+    {
+      "file": "apps/web/src/components/research-panel.tsx",
+      "errors": []
+    },
+    {
+      "file": "apps/web/src/lib/api.ts",
+      "errors": []
+    },
+    {
+      "file": "apps/web/src/lib/types.ts",
+      "errors": []
+    },
+    {
+      "file": "apps/web/src/lib/unicode.ts",
+      "errors": []
+    },
+    {
+      "file": "apps/web/tests/workspace.spec.ts",
+      "errors": []
+    }
+  ]
+}

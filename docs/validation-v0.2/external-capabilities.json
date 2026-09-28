@@ -1,0 +1,7 @@
+{
+  "docker_executable": null,
+  "postgres_executable": null,
+  "actual_llm_calls_this_validation": 0,
+  "actual_smtp_submissions_this_validation": 0,
+  "external_deployment": false
+}

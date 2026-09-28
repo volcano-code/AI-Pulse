@@ -1,0 +1,15 @@
+{
+  "status": "passed",
+  "total": 269,
+  "batches": [
+    {
+      "tests": 137,
+      "seconds": 14.66
+    },
+    {
+      "tests": 132,
+      "seconds": 16.32
+    }
+  ],
+  "note": "Two exhaustive file-partitioned pytest runs; together cover every backend/tests/test_*.py file exactly once."
+}

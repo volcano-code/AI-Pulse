@@ -1,0 +1,6 @@
+{
+  "python_compile": true,
+  "openapi_paths": 30,
+  "openapi_version": "0.3.0",
+  "native_javascript_syntax": "passed"
+}

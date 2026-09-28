@@ -1,0 +1,88 @@
+INFO  [alembic.runtime.migration] Context impl SQLiteImpl.
+INFO  [alembic.runtime.migration] Will assume non-transactional DDL.
+INFO  [alembic.runtime.migration] Running upgrade  -> 0001, initial evidence-first schema
+Revision ID: 0001
+Revises:
+INFO  [alembic.runtime.migration] Running upgrade 0001 -> 0002, Durable job state, daily schedule, transactional email outbox.
+INFO  [alembic.runtime.migration] Running upgrade 0002 -> 0003, Read-version memory and persisted bounded research traces.
+{
+  "seed": [
+    {
+      "inserted": 1,
+      "updated": 0,
+      "unchanged": 0,
+      "rejected": 0
+    },
+    {
+      "inserted": 1,
+      "updated": 0,
+      "unchanged": 0,
+      "rejected": 0
+    },
+    {
+      "inserted": 1,
+      "updated": 0,
+      "unchanged": 0,
+      "rejected": 0
+    },
+    {
+      "inserted": 1,
+      "updated": 0,
+      "unchanged": 0,
+      "rejected": 0
+    },
+    {
+      "inserted": 1,
+      "updated": 0,
+      "unchanged": 0,
+      "rejected": 0
+    },
+    {
+      "inserted": 1,
+      "updated": 0,
+      "unchanged": 0,
+      "rejected": 0
+    }
+  ],
+  "brief": {
+    "brief_id": "0f2cd0ca-2cb2-4ece-b489-7a08b3a0aa65",
+    "cached": false,
+    "items": 6
+  }
+}
+
+AI Pulse | data=replay | http://127.0.0.1:8000 | Ctrl+C to stop
+AI Pulse durable worker started: 74999f0cd34e-1516-290b5716; delivery=file
+INFO:     Started server process [1517]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:55960 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53818 - "GET /api/v1/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42032 - "GET /api/v1/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42046 - "GET /api/v1/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42060 - "GET /api/v1/sources HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42076 - "GET /api/v1/preferences HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42086 - "GET /api/v1/briefs/latest HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42098 - "GET /api/v1/snapshots/38bdfdab-7f66-4820-866e-79e7131185d9 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41316 - "GET /api/v1/updates HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41326 - "PUT /api/v1/articles/d7c9de2d-9535-4515-b61c-6a090ae7d59a/read HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41332 - "GET /api/v1/updates HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41338 - "GET /api/v1/articles/d7c9de2d-9535-4515-b61c-6a090ae7d59a/changes HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41348 - "GET /api/v1/updates HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41350 - "GET /api/v1/articles/d7c9de2d-9535-4515-b61c-6a090ae7d59a/changes HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41360 - "DELETE /api/v1/articles/d7c9de2d-9535-4515-b61c-6a090ae7d59a/read HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41366 - "GET /api/v1/updates HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41374 - "GET /api/v1/investigations HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41382 - "POST /api/v1/investigations HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41390 - "GET /api/v1/investigations HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41404 - "GET /api/v1/investigations HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41420 - "GET /api/v1/sources HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41422 - "GET /api/v1/investigations HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41438 - "GET /api/v1/investigations/40e43e28-a59a-4cc6-90c6-105d5a36be67 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41444 - "POST /api/v1/investigations HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41448 - "GET /api/v1/investigations HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [1517]

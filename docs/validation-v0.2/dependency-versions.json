@@ -1,0 +1,77 @@
+{
+  "python": "3.13.5 (main, Jul 15 2026, 20:25:40) [GCC 14.2.0]",
+  "packages": [
+    {
+      "package": "fastapi",
+      "pinned": "0.128.2",
+      "installed": "0.128.2",
+      "matches": true
+    },
+    {
+      "package": "pydantic",
+      "pinned": "2.13.4",
+      "installed": "2.13.4",
+      "matches": true
+    },
+    {
+      "package": "pydantic-settings",
+      "pinned": "2.14.1",
+      "installed": "2.14.1",
+      "matches": true
+    },
+    {
+      "package": "sqlalchemy",
+      "pinned": "2.0.50",
+      "installed": "2.0.50",
+      "matches": true
+    },
+    {
+      "package": "httpx",
+      "pinned": "0.28.1",
+      "installed": "0.28.1",
+      "matches": true
+    },
+    {
+      "package": "uvicorn",
+      "pinned": "0.48.0",
+      "installed": "0.48.0",
+      "matches": true
+    },
+    {
+      "package": "defusedxml",
+      "pinned": "0.7.1",
+      "installed": "0.7.1",
+      "matches": true
+    },
+    {
+      "package": "alembic",
+      "pinned": "1.18.4",
+      "installed": "1.18.4",
+      "matches": true
+    },
+    {
+      "package": "tzdata",
+      "pinned": "2026.2",
+      "installed": "2026.2",
+      "matches": true
+    },
+    {
+      "package": "pytest",
+      "pinned": "9.0.2",
+      "installed": "9.0.2",
+      "matches": true
+    },
+    {
+      "package": "pytest-cov",
+      "pinned": "7.0.0",
+      "installed": "7.0.0",
+      "matches": true
+    },
+    {
+      "package": "playwright",
+      "pinned": "1.57.0",
+      "installed": "1.57.0",
+      "matches": true
+    }
+  ]
+}

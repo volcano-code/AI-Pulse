@@ -1,0 +1,116 @@
+INFO  [alembic.runtime.migration] Context impl SQLiteImpl.
+INFO  [alembic.runtime.migration] Will assume non-transactional DDL.
+INFO  [alembic.runtime.migration] Running upgrade  -> 0001, initial evidence-first schema
+Revision ID: 0001
+Revises:
+{
+  "seed": [
+    {
+      "inserted": 1,
+      "updated": 0,
+      "unchanged": 0,
+      "rejected": 0
+    },
+    {
+      "inserted": 1,
+      "updated": 0,
+      "unchanged": 0,
+      "rejected": 0
+    },
+    {
+      "inserted": 1,
+      "updated": 0,
+      "unchanged": 0,
+      "rejected": 0
+    },
+    {
+      "inserted": 1,
+      "updated": 0,
+      "unchanged": 0,
+      "rejected": 0
+    },
+    {
+      "inserted": 1,
+      "updated": 0,
+      "unchanged": 0,
+      "rejected": 0
+    },
+    {
+      "inserted": 1,
+      "updated": 0,
+      "unchanged": 0,
+      "rejected": 0
+    }
+  ],
+  "brief": {
+    "brief_id": "36814030-7d06-4bce-b0b6-361aae9910ad",
+    "cached": false,
+    "items": 6
+  }
+}
+
+AI Pulse | data=replay | http://127.0.0.1:8000 | Ctrl+C to stop
+INFO:     Started server process [1383]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:39206 - "GET /api/v1/preferences HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39212 - "GET /api/v1/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39216 - "GET /api/v1/sources HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39220 - "GET /api/v1/preferences HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39222 - "GET /api/v1/briefs/latest HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39230 - "GET /api/v1/snapshots/0efa5ce1-19af-4fba-89d9-6f3e52b2a41b HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39244 - "PATCH /api/v1/articles/08421925-6e45-4e41-bf02-fa4f8d711c34/bookmark HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39250 - "GET /api/v1/articles?bookmarked=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39258 - "PATCH /api/v1/articles/08421925-6e45-4e41-bf02-fa4f8d711c34/bookmark HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39266 - "GET /api/v1/sources HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39272 - "PATCH /api/v1/sources/arxiv HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39274 - "GET /api/v1/sources HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39290 - "PATCH /api/v1/sources/arxiv HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39298 - "GET /api/v1/sources HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39300 - "PUT /api/v1/preferences HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39312 - "GET /api/v1/preferences HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39326 - "PUT /api/v1/preferences HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39342 - "POST /api/v1/ask/stream HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39354 - "POST /api/v1/ask/stream HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39368 - "GET /api/v1/briefs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39374 - "GET /api/v1/briefs/36814030-7d06-4bce-b0b6-361aae9910ad HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39376 - "POST /api/v1/runs HTTP/1.1" 202 Accepted
+INFO:     127.0.0.1:39382 - "GET /api/v1/runs/b0b3cc05-3606-4a20-8d41-20b4bac18d4a HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39394 - "GET /api/v1/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39408 - "GET /api/v1/sources HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39412 - "GET /api/v1/preferences HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39422 - "GET /api/v1/briefs/latest HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39428 - "GET /api/v1/runs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39432 - "GET /api/v1/briefs/latest HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39446 - "PUT /api/v1/preferences HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45426 - "GET /api/v1/preferences HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45428 - "GET /api/v1/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45440 - "GET /api/v1/sources HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45444 - "GET /api/v1/preferences HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45456 - "GET /api/v1/briefs/latest HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45472 - "GET /api/v1/snapshots/0efa5ce1-19af-4fba-89d9-6f3e52b2a41b HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45484 - "PATCH /api/v1/articles/08421925-6e45-4e41-bf02-fa4f8d711c34/bookmark HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45488 - "GET /api/v1/articles?bookmarked=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45492 - "PATCH /api/v1/articles/08421925-6e45-4e41-bf02-fa4f8d711c34/bookmark HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45508 - "GET /api/v1/sources HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45514 - "PATCH /api/v1/sources/arxiv HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45522 - "GET /api/v1/sources HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45528 - "PATCH /api/v1/sources/arxiv HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45540 - "GET /api/v1/sources HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45552 - "PUT /api/v1/preferences HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45554 - "GET /api/v1/preferences HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45556 - "PUT /api/v1/preferences HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45560 - "POST /api/v1/ask/stream HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45576 - "POST /api/v1/ask/stream HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45578 - "GET /api/v1/briefs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45588 - "GET /api/v1/briefs/36814030-7d06-4bce-b0b6-361aae9910ad HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45592 - "POST /api/v1/runs HTTP/1.1" 202 Accepted
+INFO:     127.0.0.1:45602 - "GET /api/v1/runs/016da085-dda8-42df-9ef9-7a40c9a0393b HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45608 - "GET /api/v1/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45622 - "GET /api/v1/sources HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45624 - "GET /api/v1/preferences HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45640 - "GET /api/v1/briefs/latest HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45650 - "GET /api/v1/runs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45654 - "GET /api/v1/briefs/latest HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45656 - "PUT /api/v1/preferences HTTP/1.1" 200 OK

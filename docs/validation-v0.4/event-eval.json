@@ -1,0 +1,99 @@
+{
+  "dataset": "synthetic bilingual sanity set",
+  "pairs": 12,
+  "threshold": 0.52,
+  "tp": 6,
+  "fp": 0,
+  "fn": 0,
+  "tn": 6,
+  "precision": 1.0,
+  "recall": 1.0,
+  "f1": 1.0,
+  "rows": [
+    {
+      "a": "LangGraph 1.2 released with durable agents",
+      "b": "LangGraph 1.2 release: durable agent runtime",
+      "same": true,
+      "score": 0.7029,
+      "predicted_same": true
+    },
+    {
+      "a": "AgentKit 2.0 released with tool budgets",
+      "b": "AgentKit 2.0 release adds tool budget controls",
+      "same": true,
+      "score": 0.7,
+      "predicted_same": true
+    },
+    {
+      "a": "OpenAI launches GPT-6 mini preview",
+      "b": "GPT-6 mini enters public preview",
+      "same": true,
+      "score": 0.7,
+      "predicted_same": true
+    },
+    {
+      "a": "Qwen3.5 发布：新增工具调用能力",
+      "b": "Qwen3.5 正式推出，支持工具调用",
+      "same": true,
+      "score": 0.74,
+      "predicted_same": true
+    },
+    {
+      "a": "Claude Code 2.1 release notes",
+      "b": "Claude Code 2.1 发布说明",
+      "same": true,
+      "score": 0.7,
+      "predicted_same": true
+    },
+    {
+      "a": "LangGraph 1.2 released with durable agents",
+      "b": "Vision benchmark for medical images",
+      "same": false,
+      "score": 0.3058,
+      "predicted_same": false
+    },
+    {
+      "a": "AgentKit 2.0 released with tool budgets",
+      "b": "AgentKit 1.8 security patch",
+      "same": false,
+      "score": 0.41,
+      "predicted_same": false
+    },
+    {
+      "a": "Qwen3.5 发布：新增工具调用能力",
+      "b": "Qwen3.5-VL 图像理解评测",
+      "same": false,
+      "score": 0.3713,
+      "predicted_same": false
+    },
+    {
+      "a": "OpenAI launches GPT-6 mini preview",
+      "b": "OpenAI publishes safety research dataset",
+      "same": false,
+      "score": 0.3324,
+      "predicted_same": false
+    },
+    {
+      "a": "Claude Code 2.1 release notes",
+      "b": "Claude Sonnet reasoning benchmark",
+      "same": false,
+      "score": 0.3341,
+      "predicted_same": false
+    },
+    {
+      "a": "MCP Python SDK 2.0 released",
+      "b": "MCP Python SDK 2.0 发布",
+      "same": true,
+      "score": 1.0,
+      "predicted_same": true
+    },
+    {
+      "a": "MCP Python SDK 2.0 released",
+      "b": "MCP TypeScript SDK 2.0 released",
+      "same": false,
+      "score": 0.4,
+      "predicted_same": false
+    }
+  ],
+  "warning": "Synthetic regression fixture only; real-news labeled evaluation is still required."
+}
