@@ -5,6 +5,7 @@ import math
 from sqlalchemy import delete, select, text
 from .models import EvidenceChunk, Snapshot
 from .textutil import digest
+from .timeutil import iso, utcnow
 
 
 BOUNDARIES = "\n。！？.!?;；"
@@ -81,13 +82,28 @@ def vector_literal(values: list[float]) -> str:
     return "[" + ",".join(format(v, ".9g") for v in clean) + "]"
 
 
-def write_embedding(db, chunk: EvidenceChunk, values: list[float], model: str) -> None:
+def write_embedding(
+    db,
+    chunk: EvidenceChunk,
+    values: list[float],
+    model: str,
+    *,
+    provider: str = "fixture",
+    revision: str | None = None,
+) -> None:
     clean = _validated_vector(values)
+    if not provider or len(provider) > 60:
+        raise ValueError("Embedding provider is required")
     if not model or len(model) > 120:
         raise ValueError("Embedding model is required")
+    if revision is not None and len(revision) > 120:
+        raise ValueError("Embedding revision is too long")
     chunk.embedding_json = clean
+    chunk.embedding_provider = provider
     chunk.embedding_model = model
+    chunk.embedding_revision = revision
     chunk.embedding_dim = len(clean)
+    chunk.embedded_at = iso(utcnow())
     db.flush()
     if db.bind.dialect.name == "postgresql":
         db.execute(text("""
