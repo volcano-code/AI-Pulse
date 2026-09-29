@@ -10,6 +10,7 @@ from collections import defaultdict
 from sqlalchemy import select, text
 from .embeddings import vector_literal
 from .models import Article, Snapshot, Source
+from .retrieval import RetrievalScope, lexical_candidates
 
 
 def reciprocal_rank_fusion(rankings: list[list[str]], k: int = 60, limit: int = 20) -> list[tuple[str, float]]:
@@ -76,6 +77,7 @@ def fuse_evidence(
     embedding_model: str | None,
     vector_limit: int = 50,
     final_limit: int = 5,
+    allowed_snapshot_ids: list[str] | None = None,
 ) -> tuple[list[dict], dict]:
     """Fuse lexical snapshot ranking with exact vector chunk ranking.
 
@@ -84,6 +86,7 @@ def fuse_evidence(
     snapshot that was not part of the caller's lexical scope.
     """
     lexical_ids = list(dict.fromkeys(c["snapshot_id"] for c in lexical_citations))
+    authorized_ids = list(dict.fromkeys(allowed_snapshot_ids)) if allowed_snapshot_ids is not None else lexical_ids
     vector_ready = bool(query_vector and embedding_model and db.bind.dialect.name == "postgresql")
     status = retrieval_status("hybrid", vector_available=vector_ready)
     if not vector_ready:
@@ -91,7 +94,7 @@ def fuse_evidence(
 
     vectors = vector_candidates(
         db, query_vector, embedding_model, limit=vector_limit,
-        allowed_snapshot_ids=lexical_ids,
+        allowed_snapshot_ids=authorized_ids,
     )
     vector_ids = list(dict.fromkeys(row["snapshot_id"] for row in vectors))
     fused = reciprocal_rank_fusion([lexical_ids, vector_ids], limit=final_limit)
@@ -147,3 +150,34 @@ def retrieval_status(requested_mode: str, *, vector_available: bool) -> dict:
         return {"requested_mode": "hybrid", "effective_mode": "lexical", "degraded": True,
                 "degraded_reason": "embedding_unavailable"}
     return {"requested_mode": "hybrid", "effective_mode": "hybrid", "degraded": False, "degraded_reason": None}
+
+
+
+def hybrid_search(
+    db,
+    question: str,
+    scope: RetrievalScope,
+    *,
+    query_vector: list[float] | None,
+    embedding_model: str | None,
+    lexical_limit: int = 50,
+    vector_limit: int = 50,
+    final_limit: int = 20,
+) -> dict:
+    """Run two independent candidate generators inside one authorized scope."""
+    lexical = lexical_candidates(db, question, scope, limit=lexical_limit)
+    citations, status = fuse_evidence(
+        db,
+        lexical,
+        query_vector=query_vector,
+        embedding_model=embedding_model,
+        vector_limit=vector_limit,
+        final_limit=final_limit,
+        allowed_snapshot_ids=list(scope.snapshot_ids),
+    )
+    return {
+        **status,
+        "citations": citations,
+        "searched_documents": len(scope.snapshot_ids),
+        "abstained": not citations,
+    }
