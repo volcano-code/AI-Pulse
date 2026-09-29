@@ -39,6 +39,8 @@ def test_embedding_validation_and_sqlite_storage(seeded):
         chunk = ensure_snapshot_chunks(db, snapshot)[0]
         write_embedding(db, chunk, [0.1, -0.2, 0.3], "fixture-embedding")
         assert chunk.embedding_dim == 3 and chunk.embedding_model == "fixture-embedding"
+        assert chunk.embedding_provider == "fixture"
+        assert chunk.embedded_at
         assert chunk.embedding_json == [0.1, -0.2, 0.3]
         assert vector_candidates(db, [0.1, -0.2, 0.3], "fixture-embedding") == []
     with pytest.raises(ValueError):
@@ -82,7 +84,8 @@ def test_fuse_evidence_rrf_prefers_vector_supported_snapshot(monkeypatch):
         {"snapshot_id": "s2", "article_id": "a2", "quote": "lexical two", "quote_start": 0, "quote_end": 11},
     ]
 
-    def fake_vector_candidates(db, query_vector, embedding_model, limit, allowed_snapshot_ids):
+    def fake_vector_candidates(db, query_vector, embedding_model, limit, embedding_provider, allowed_snapshot_ids):
+        assert embedding_provider == "fixture"
         assert allowed_snapshot_ids == ["s1", "s2"]
         return [{
             "id": "c2", "snapshot_id": "s2", "ordinal": 0,
@@ -117,7 +120,8 @@ def test_hybrid_vector_can_recover_snapshot_outside_lexical_hits(monkeypatch):
         {"snapshot_id": "s1", "article_id": "a1", "quote": "keyword hit", "quote_start": 0, "quote_end": 11},
     ])
 
-    def fake_vectors(db, query_vector, embedding_model, limit, allowed_snapshot_ids):
+    def fake_vectors(db, query_vector, embedding_model, limit, embedding_provider, allowed_snapshot_ids):
+        assert embedding_provider == "fixture"
         assert allowed_snapshot_ids == ["s1", "s2", "s3"]
         return [{
             "id": "c3", "snapshot_id": "s3", "ordinal": 0,
@@ -150,7 +154,8 @@ def test_hybrid_never_passes_snapshots_outside_authorized_scope(monkeypatch):
     scope = RetrievalScope(snapshot_ids=("old-1", "old-2"), brief_id="brief-old", data_mode="replay")
     monkeypatch.setattr(hybrid_retrieval, "lexical_candidates", lambda *args, **kwargs: [])
 
-    def fake_vectors(db, query_vector, embedding_model, limit, allowed_snapshot_ids):
+    def fake_vectors(db, query_vector, embedding_model, limit, embedding_provider, allowed_snapshot_ids):
+        assert embedding_provider == "fixture"
         assert allowed_snapshot_ids == ["old-1", "old-2"]
         return []
 
