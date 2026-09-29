@@ -226,7 +226,10 @@ class EvidenceChunk(Base):
     start_offset: Mapped[int] = mapped_column(Integer)
     end_offset: Mapped[int] = mapped_column(Integer)
     embedding_json: Mapped[list | None] = mapped_column(JSON, nullable=True)
+    embedding_provider: Mapped[str | None] = mapped_column(String(60), nullable=True)
     embedding_model: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    embedding_revision: Mapped[str | None] = mapped_column(String(120), nullable=True)
     embedding_dim: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    embedded_at: Mapped[str | None] = mapped_column(String(40), nullable=True)
     created_at: Mapped[str] = mapped_column(String(40), default=now)
 
