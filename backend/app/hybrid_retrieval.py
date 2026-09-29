@@ -32,6 +32,7 @@ def vector_candidates(
     query_vector: list[float],
     embedding_model: str,
     limit: int = 50,
+    embedding_provider: str = "fixture",
     allowed_snapshot_ids: list[str] | None = None,
 ) -> list[dict]:
     """Exact cosine search. ANN indexes are intentionally not introduced yet.
@@ -41,10 +42,11 @@ def vector_candidates(
     """
     if db.bind.dialect.name != "postgresql":
         return []
-    if not embedding_model or limit < 1 or limit > 100:
+    if not embedding_provider or not embedding_model or limit < 1 or limit > 100:
         raise ValueError("Invalid vector search request")
     params = {
         "query": vector_literal(query_vector),
+        "provider": embedding_provider,
         "model": embedding_model,
         "dim": len(query_vector),
         "limit": limit,
@@ -60,6 +62,7 @@ def vector_candidates(
                1 - (embedding_vector <=> CAST(:query AS vector)) AS similarity
         FROM evidence_chunks
         WHERE embedding_vector IS NOT NULL
+          AND embedding_provider = :provider
           AND embedding_model = :model
           AND embedding_dim = :dim
           {scope}
@@ -75,6 +78,7 @@ def fuse_evidence(
     *,
     query_vector: list[float] | None,
     embedding_model: str | None,
+    embedding_provider: str = "fixture",
     vector_limit: int = 50,
     final_limit: int = 5,
     allowed_snapshot_ids: list[str] | None = None,
@@ -94,6 +98,7 @@ def fuse_evidence(
 
     vectors = vector_candidates(
         db, query_vector, embedding_model, limit=vector_limit,
+        embedding_provider=embedding_provider,
         allowed_snapshot_ids=authorized_ids,
     )
     vector_ids = list(dict.fromkeys(row["snapshot_id"] for row in vectors))
@@ -160,6 +165,7 @@ def hybrid_search(
     *,
     query_vector: list[float] | None,
     embedding_model: str | None,
+    embedding_provider: str = "fixture",
     lexical_limit: int = 50,
     vector_limit: int = 50,
     final_limit: int = 20,
@@ -171,6 +177,7 @@ def hybrid_search(
         lexical,
         query_vector=query_vector,
         embedding_model=embedding_model,
+        embedding_provider=embedding_provider,
         vector_limit=vector_limit,
         final_limit=final_limit,
         allowed_snapshot_ids=list(scope.snapshot_ids),
