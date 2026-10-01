@@ -99,6 +99,9 @@ def test_research_extractive_persists_trace_and_quotes(seeded):
     data=response.json();result=data['result']
     assert data['status']=='completed' and result['model_calls']==0
     assert result['usage']['cost_usd']==0 and result['citations']
+    assert result['retrieval']['requested_mode']=='lexical'
+    assert result['retrieval']['effective_mode']=='lexical'
+    assert result['retrieval']['degraded'] is False
     assert {'start','tool','finish'} <= {e['stage'] for e in data['trace']}
     assert seeded.get('/api/v1/investigations/'+data['id']).json()['result']==result
     for c in result['citations']:
@@ -291,3 +294,38 @@ def test_historical_research_does_not_read_new_snapshot(seeded):
     result=seeded.post('/api/v1/investigations',json={'question':'Agent 工作流','brief_id':brief['id']}).json()['result']
     assert all(c['snapshot_id']!=new for c in result['citations'])
     assert any(c['snapshot_id']==item['snapshot_id'] for c in result['citations'])
+
+
+
+def test_research_hybrid_mode_degrades_explicitly_without_vector_database(seeded):
+    factory=seeded.app.state.session_factory
+    settings=seeded.app.state.settings.model_copy(update={
+        'retrieval_mode':'hybrid',
+        'embedding_provider':'fixture',
+        'embedding_model':'fixture-sha256-v1',
+        'embedding_dim':8,
+    })
+    data=execute_research(factory,settings,ResearchRequest(question='Agent 工作流'))
+    receipt=data['result']['retrieval']
+    assert receipt['requested_mode']=='hybrid'
+    assert receipt['effective_mode']=='lexical'
+    assert receipt['degraded'] is True
+    assert receipt['degraded_reason']=='vector_database_unavailable'
+    tool_events=[x for x in data['trace'] if x['stage']=='tool' and x.get('tool')=='search_saved_evidence']
+    assert tool_events and tool_events[0]['retrieval']==receipt
+
+
+def test_research_request_identity_includes_retrieval_configuration(seeded):
+    factory=seeded.app.state.session_factory
+    body=ResearchRequest(question='Agent',idempotency_key='retrieval-identity')
+    lexical=execute_research(factory,seeded.app.state.settings,body)
+    assert lexical['status']=='completed'
+    hybrid=seeded.app.state.settings.model_copy(update={
+        'retrieval_mode':'hybrid',
+        'embedding_provider':'fixture',
+        'embedding_model':'fixture-sha256-v1',
+        'embedding_dim':8,
+    })
+    with pytest.raises(Exception) as exc:
+        execute_research(factory,hybrid,body)
+    assert 'different research request' in str(exc.value)

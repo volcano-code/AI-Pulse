@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     llm_response_format: Literal["json_schema", "json_object"] = "json_schema"
     llm_max_output_tokens: int = Field(default=700, ge=200, le=2000)
     retrieval_mode: Literal["lexical", "hybrid"] = "lexical"
+    embedding_provider: Literal["", "fixture"] = ""
     embedding_model: str = ""
     embedding_dim: int = Field(default=0, ge=0, le=16000)
     retrieval_lexical_k: int = Field(default=50, ge=1, le=100)
@@ -52,8 +53,12 @@ class Settings(BaseSettings):
             raise ValueError("ADMIN_TOKEN must contain at least 24 characters")
         if self.llm_mode == "live" and (not self.llm_api_key or not self.llm_model):
             raise ValueError("Live LLM mode requires LLM_API_KEY and LLM_MODEL")
-        if self.retrieval_mode == "hybrid" and bool(self.embedding_model) != bool(self.embedding_dim):
-            raise ValueError("Hybrid embedding metadata requires both EMBEDDING_MODEL and EMBEDDING_DIM")
+        if self.retrieval_mode == "hybrid":
+            metadata = (bool(self.embedding_provider), bool(self.embedding_model), bool(self.embedding_dim))
+            if any(metadata) and not all(metadata):
+                raise ValueError("Hybrid embedding metadata requires EMBEDDING_PROVIDER, EMBEDDING_MODEL and EMBEDDING_DIM")
+            if self.embedding_provider == "fixture" and self.embedding_model != "fixture-sha256-v1":
+                raise ValueError("Fixture embedding provider requires EMBEDDING_MODEL=fixture-sha256-v1")
         if self.data_mode == "replay" and self.llm_mode == "live":
             raise ValueError("Replay data must not be sent to a paid model. Use extractive mode.")
         from email.headerregistry import Address
