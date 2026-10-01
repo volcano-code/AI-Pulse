@@ -11,7 +11,7 @@ from sqlalchemy import func, select, update
 from .llm import EvidenceError, ModelError
 from .models import Brief, Investigation, Snapshot, Workspace
 from .research_model import ResearchModelClient, SYSTEM
-from .retrieval import answer_question
+from .research_retrieval import search_research_evidence
 from .schemas import ResearchDraft
 from .textutil import digest
 from .timeutil import iso, utcnow
@@ -42,7 +42,10 @@ def execute_research(factory, settings, request, model_client=None, clock=time.m
     identity = request.model_dump(exclude={"idempotency_key"}) | {
         "data_mode": settings.data_mode, "llm_mode": settings.llm_mode,
         "model": settings.llm_model if settings.llm_mode == "live" else None,
-        "workflow": "bounded-evidence-v1"}
+        "retrieval_mode": settings.retrieval_mode,
+        "embedding_provider": getattr(settings, "embedding_provider", "") or None,
+        "embedding_model": settings.embedding_model or None,
+        "workflow": "bounded-evidence-v2"}
     request_hash = digest(json.dumps(identity, sort_keys=True, ensure_ascii=False))
     with factory.begin() as db:
         # Serialize creation for the single-owner workspace, not a distributed broker.
@@ -68,6 +71,7 @@ def execute_research(factory, settings, request, model_client=None, clock=time.m
     started = clock()
     evidence, evidence_keys, trace, usages = {}, {}, [], []
     tool_calls, model_calls, searched = 0, 0, 0
+    retrieval_receipts = []
 
     def event(stage, message, **extra):
         item = {"stage": stage, "message": message, "at": iso(utcnow()), **extra}
@@ -87,8 +91,16 @@ def execute_research(factory, settings, request, model_client=None, clock=time.m
         if name == "search_saved_evidence":
             args = SearchArgs.model_validate(arguments)
             with factory() as db:
-                result = answer_question(db, args.query, request.brief_id, settings.data_mode)
+                result = search_research_evidence(db, settings, args.query, request.brief_id)
             searched = max(searched, result["searched_documents"])
+            receipt = {
+                "requested_mode": result["requested_mode"],
+                "effective_mode": result["effective_mode"],
+                "degraded": result["degraded"],
+                "degraded_reason": result["degraded_reason"],
+                "searched_documents": result["searched_documents"],
+            }
+            retrieval_receipts.append(receipt)
             found = []
             for citation in result["citations"]:
                 key = (citation["snapshot_id"], citation["quote_start"], citation["quote_end"])
@@ -98,8 +110,8 @@ def execute_research(factory, settings, request, model_client=None, clock=time.m
                     evidence_keys[key] = eid
                     evidence[eid] = citation | {"evidence_id": eid}
                 found.append(evidence[eid])
-            event("tool", "检索已保存的证据", tool=name, query=args.query, found=len(found))
-            return {"evidence": found, "searched_documents": result["searched_documents"]}
+            event("tool", "检索已保存的证据", tool=name, query=args.query, found=len(found), retrieval=receipt)
+            return {"evidence": found, "searched_documents": result["searched_documents"], "retrieval": receipt}
         if name == "inspect_evidence":
             args = InspectArgs.model_validate(arguments)
             if args.evidence_id not in evidence:
@@ -114,7 +126,8 @@ def execute_research(factory, settings, request, model_client=None, clock=time.m
         raise ValueError("Tool not permitted")
 
     event("start", "只检索本地保存的资料；不访问任意网页、不执行代码、不发送邮件",
-          workflow="bounded-evidence-v1", tool_budget=request.max_tool_calls,
+          workflow="bounded-evidence-v2", requested_retrieval_mode=settings.retrieval_mode,
+          tool_budget=request.max_tool_calls,
           model_budget=request.max_model_calls if settings.llm_mode == "live" else 0)
     status, stop_reason, claims = "completed", "completed", []
     try:
@@ -214,11 +227,18 @@ def execute_research(factory, settings, request, model_client=None, clock=time.m
     result = {"answer": answer, "claims": claims, "citations": list(evidence.values()),
               "stop_reason": stop_reason, "tool_calls": tool_calls, "model_calls": model_calls,
               "searched_documents": searched, "abstained": not claims,
+              "retrieval": retrieval_receipts[-1] if retrieval_receipts else {
+                  "requested_mode": settings.retrieval_mode,
+                  "effective_mode": None,
+                  "degraded": None,
+                  "degraded_reason": "not_executed",
+                  "searched_documents": 0,
+              },
               "verification": "quote_location_only", "elapsed_ms": round((clock() - started) * 1000),
               "usage": {"prompt_tokens": sum(u["prompt_tokens"] for u in usages) if usages and all(u["prompt_tokens"] is not None for u in usages) else None,
                         "completion_tokens": sum(u["completion_tokens"] for u in usages) if usages and all(u["completion_tokens"] is not None for u in usages) else None,
                         "cost_usd": 0 if model_calls == 0 else None},
-              "limitations": ["不是自主联网研究或向量 RAG", "引用位置匹配不等于语义事实核验", "模型草稿仅供人工复核，不自动分发"]}
+              "limitations": ["不进行自主联网研究", "引用位置匹配不等于语义事实核验", "模型草稿仅供人工复核，不自动分发"]}
     event("finish", "研究记录已完成并保存", status=status, stop_reason=stop_reason)
     with factory.begin() as db:
         row = db.get(Investigation, run_id)
