@@ -1,0 +1,17 @@
+{
+  "version": "synthetic-v1",
+  "data_mode": "replay",
+  "description": "Frozen synthetic retrieval regression set. It is not a real-news quality benchmark.",
+  "cases": [
+    {"id":"zh-agent-checkpoint","question":"Agent 工作流 检查点 可恢复任务","relevant_urls":["https://example.com/ai-pulse-test/1"]},
+    {"id":"zh-citation-verification","question":"LLM 引用匹配 事实核验","relevant_urls":["https://example.com/ai-pulse-test/2"]},
+    {"id":"zh-multilingual-retrieval","question":"多语言检索 中文分词 英文关键词","relevant_urls":["https://example.com/ai-pulse-test/3"]},
+    {"id":"zh-multimodal-chart","question":"多模态 图表 理解 PDF","relevant_urls":["https://example.com/ai-pulse-test/4"]},
+    {"id":"zh-version-snapshot","question":"开源发布 版本对比 不可变快照","relevant_urls":["https://example.com/ai-pulse-test/5"]},
+    {"id":"zh-agent-budget","question":"Agent 预算 页面数量 执行轮次","relevant_urls":["https://example.com/ai-pulse-test/6"]},
+    {"id":"en-checkpoint","question":"agent workflow checkpoint recoverable task","relevant_urls":["https://example.com/ai-pulse-test/1"]},
+    {"id":"en-evidence","question":"LLM citation evidence verification","relevant_urls":["https://example.com/ai-pulse-test/2"]},
+    {"id":"en-retrieval","question":"multilingual retrieval Chinese tokenization English keyword","relevant_urls":["https://example.com/ai-pulse-test/3"]},
+    {"id":"en-budget","question":"agent budget model call limit execution rounds","relevant_urls":["https://example.com/ai-pulse-test/6"]}
+  ]
+}
