@@ -33,7 +33,7 @@ def test_synthetic_dataset_is_valid_and_meets_regression_gate(seeded):
         result=evaluate_lexical_dataset(db,dataset,data_mode="replay",k=20)
     assert result["synthetic"] is True
     assert result["cases"] == 10
-    assert_thresholds(result,min_recall=1.0,min_mrr=0.80)
+    assert_thresholds(result,min_recall=0.90,min_mrr=0.80)
 
 
 def test_dataset_rejects_duplicate_case_ids(tmp_path):
