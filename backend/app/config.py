@@ -15,7 +15,10 @@ class Settings(BaseSettings):
     llm_response_format: Literal["json_schema", "json_object"] = "json_schema"
     llm_max_output_tokens: int = Field(default=700, ge=200, le=2000)
     retrieval_mode: Literal["lexical", "hybrid"] = "lexical"
-    embedding_provider: Literal["", "fixture"] = ""
+    embedding_provider: Literal["", "fixture", "openai"] = ""
+    embedding_base_url: str = "https://api.openai.com/v1"
+    embedding_api_key: str = ""
+    embedding_timeout_seconds: float = Field(default=20, ge=1, le=60)
     embedding_model: str = ""
     embedding_dim: int = Field(default=0, ge=0, le=16000)
     retrieval_lexical_k: int = Field(default=50, ge=1, le=100)
@@ -59,6 +62,11 @@ class Settings(BaseSettings):
                 raise ValueError("Hybrid embedding metadata requires EMBEDDING_PROVIDER, EMBEDDING_MODEL and EMBEDDING_DIM")
             if self.embedding_provider == "fixture" and self.embedding_model != "fixture-sha256-v1":
                 raise ValueError("Fixture embedding provider requires EMBEDDING_MODEL=fixture-sha256-v1")
+            if self.embedding_provider == "openai":
+                if not self.embedding_api_key:
+                    raise ValueError("OpenAI embedding provider requires EMBEDDING_API_KEY")
+                if self.data_mode == "replay":
+                    raise ValueError("Synthetic replay data must not be sent to a paid embedding provider")
         if self.data_mode == "replay" and self.llm_mode == "live":
             raise ValueError("Replay data must not be sent to a paid model. Use extractive mode.")
         from email.headerregistry import Address
