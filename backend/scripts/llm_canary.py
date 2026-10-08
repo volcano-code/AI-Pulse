@@ -1,7 +1,7 @@
 """One-shot real LLM canary. Never invoked by CI or application startup.
 
 Usage:
-  LLM_API_KEY=... LLM_MODEL=... python -m scripts.llm_canary --confirm-live-call
+  LLM_API_KEY=... LLM_MODEL=... LLM_RESPONSE_FORMAT=json_object python -m scripts.llm_canary --confirm-live-call
 
 Only a fixed non-sensitive source excerpt is sent. No retry, no tools, no email.
 """
@@ -23,7 +23,7 @@ CANARY_TEXT = (
 def run_canary(settings: Settings) -> dict:
     if settings.llm_mode != "live" or settings.data_mode != "live":
         raise ValueError("Canary requires explicit live LLM and live data modes")
-    draft, usage = ModelClient(settings).draft("AI Pulse synthetic canary", CANARY_TEXT)
+    draft, usage = ModelClient(settings).draft("AI Pulse synthetic canary", CANARY_TEXT)\n    if draft.evidence_quote not in CANARY_TEXT:\n        raise EvidenceError("Canary quote failed exact verification")
     return {
         "status": "passed",
         "provider_model": settings.llm_model,
