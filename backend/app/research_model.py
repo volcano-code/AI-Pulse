@@ -11,6 +11,7 @@ import sys
 from urllib.parse import urlsplit
 import httpx
 from .llm import ModelError
+from .model_gateway import GatewayError, post_chat_completion
 
 TOOLS = [
     {"type": "function", "function": {
@@ -43,17 +44,10 @@ def request_turn(base_url, key, model, messages, max_tokens, timeout, transport=
     payload = {"model": model, "messages": messages, "tools": TOOLS, "tool_choice": "auto",
                "response_format": {"type": "json_object"}, "max_tokens": max_tokens}
     try:
-        with httpx.Client(timeout=timeout, follow_redirects=False, trust_env=False, transport=transport) as client:
-            with client.stream("POST", base_url.rstrip("/") + "/chat/completions",
-                               headers={"Authorization": "Bearer " + key}, json=payload) as response:
-                response.raise_for_status()
-                parts, size = [], 0
-                for part in response.iter_bytes():
-                    size += len(part)
-                    if size > 1_000_000:
-                        raise ModelError("Model response exceeds byte budget")
-                    parts.append(part)
-        result = json.loads(b"".join(parts))
+        result = post_chat_completion(
+            base_url=base_url, api_key=key, payload=payload, timeout=timeout,
+            max_response_bytes=1_000_000, transport=transport,
+        )
         choice = result["choices"][0]
         if choice.get("finish_reason") not in {"stop", "tool_calls"} or choice["message"].get("refusal"):
             raise ModelError("Model refused or did not finish a complete turn")
