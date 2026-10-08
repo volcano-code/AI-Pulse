@@ -4,7 +4,7 @@ from __future__ import annotations
 from sqlalchemy import or_, select
 from .embedding_gateway import EmbeddingGateway
 from .embeddings import write_embedding
-from .models import EvidenceChunk
+from .models import EvidenceChunk, Snapshot, Article
 
 
 def backfill_embeddings(
@@ -14,6 +14,7 @@ def backfill_embeddings(
     batch_size: int = 32,
     max_chunks: int = 500,
     force: bool = False,
+    data_mode: str | None = None,
 ) -> dict:
     if batch_size < 1 or batch_size > 128:
         raise ValueError("batch_size must be between 1 and 128")
@@ -26,7 +27,14 @@ def backfill_embeddings(
     if not provider or not model or not dimensions:
         raise ValueError("Embedding provider must expose provider, model and dimensions")
 
-    stmt = select(EvidenceChunk).order_by(EvidenceChunk.id).limit(max_chunks)
+    stmt = select(EvidenceChunk)
+    if data_mode is not None:
+        if data_mode not in ("live", "replay"):
+            raise ValueError("Invalid data mode")
+        stmt = (stmt.join(Snapshot, EvidenceChunk.snapshot_id == Snapshot.id)
+                .join(Article, Snapshot.article_id == Article.id)
+                .where(Article.data_mode == data_mode))
+    stmt = stmt.order_by(EvidenceChunk.id).limit(max_chunks)
     if not force:
         stmt = stmt.where(or_(
             EvidenceChunk.embedding_provider.is_(None),
