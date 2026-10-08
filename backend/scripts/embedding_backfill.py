@@ -43,14 +43,15 @@ def run(settings, *, apply: bool, confirm_provider: str | None,
         raise ValueError("Invalid backfill budget")
     engine, factory = make_database(settings)
     try:
+        if apply and confirm_provider != settings.embedding_provider:
+            raise ValueError("Explicit provider confirmation required")
+        if apply and settings.embedding_provider == "openai":
+            if not allow_paid_api or settings.data_mode != "live" or settings.database_url.startswith("sqlite"):
+                raise ValueError("Paid backfill requires authorization, live data and PostgreSQL")
         with factory() as db:
             plan = plan_backfill(db, settings, max_chunks=max_chunks)
         if not apply:
             return {"status":"dry_run", **plan}
-        if settings.database_url.startswith("sqlite") and settings.embedding_provider == "openai":
-            raise ValueError("Paid backfill requires PostgreSQL and explicit live mode")
-        if confirm_provider != settings.embedding_provider:
-            raise ValueError("Explicit provider confirmation required")
         if settings.embedding_provider == "openai":
             if not allow_paid_api or settings.data_mode != "live":
                 raise ValueError("Paid embedding calls require explicit authorization and live data")
