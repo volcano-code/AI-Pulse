@@ -6,7 +6,7 @@ Live provider calls require --allow-paid-api and a live data mode.
 from __future__ import annotations
 import argparse
 import json
-from sqlalchemy import func, or_, select
+from sqlalchemy import or_, select
 from app.config import Settings
 from app.db import make_database
 from app.embedding_gateway import EmbeddingGateway, FixtureEmbeddingProvider
@@ -47,6 +47,8 @@ def run(settings, *, apply: bool, confirm_provider: str | None,
             plan = plan_backfill(db, settings, max_chunks=max_chunks)
         if not apply:
             return {"status":"dry_run", **plan}
+        if settings.database_url.startswith("sqlite") and settings.embedding_provider == "openai":
+            raise ValueError("Paid backfill requires PostgreSQL and explicit live mode")
         if confirm_provider != settings.embedding_provider:
             raise ValueError("Explicit provider confirmation required")
         if settings.embedding_provider == "openai":
