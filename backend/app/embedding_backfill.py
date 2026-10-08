@@ -43,8 +43,12 @@ def backfill_embeddings(
             EvidenceChunk.embedding_dim != dimensions,
         ))
     rows = list(db.scalars(stmt))
+    if provider != "fixture" and data_mode != "live":
+        raise ValueError("Paid embedding requires an explicit live-only scope")
     embedded = 0
     request_ids = []
+    input_tokens = 0
+    token_usage_complete = True
     for offset in range(0, len(rows), batch_size):
         batch_rows = rows[offset:offset + batch_size]
         result = gateway.embed_documents([row.text for row in batch_rows])
@@ -58,6 +62,10 @@ def backfill_embeddings(
             embedded += 1
         if result.request_id:
             request_ids.append(result.request_id)
+        if result.input_tokens is None:
+            token_usage_complete = False
+        else:
+            input_tokens += result.input_tokens
 
     return {
         "provider": provider,
@@ -66,5 +74,7 @@ def backfill_embeddings(
         "selected": len(rows),
         "embedded": embedded,
         "request_ids": request_ids,
+        "input_tokens": input_tokens if token_usage_complete else None,
+        "cost_usd": None,
         "complete": len(rows) < max_chunks,
     }
