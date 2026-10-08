@@ -23,7 +23,9 @@ CANARY_TEXT = (
 def run_canary(settings: Settings) -> dict:
     if settings.llm_mode != "live" or settings.data_mode != "live":
         raise ValueError("Canary requires explicit live LLM and live data modes")
-    draft, usage = ModelClient(settings).draft("AI Pulse synthetic canary", CANARY_TEXT)\n    if draft.evidence_quote not in CANARY_TEXT:\n        raise EvidenceError("Canary quote failed exact verification")
+    draft, usage = ModelClient(settings).draft("AI Pulse synthetic canary", CANARY_TEXT)
+    if draft.evidence_quote not in CANARY_TEXT:
+        raise EvidenceError("Canary quote failed exact verification")
     return {
         "status": "passed",
         "provider_model": settings.llm_model,
