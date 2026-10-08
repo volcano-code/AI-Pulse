@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from .embedding_gateway import EmbeddingGateway, FixtureEmbeddingProvider
 from .hybrid_retrieval import hybrid_search
+from .openai_embedding_provider import OpenAIEmbeddingProvider
 from .retrieval import answer_question, build_scope
 
 
@@ -15,6 +16,14 @@ def make_embedding_gateway(settings):
     provider = getattr(settings, "embedding_provider", "")
     if provider == "fixture":
         return EmbeddingGateway(FixtureEmbeddingProvider(settings.embedding_dim))
+    if provider == "openai":
+        return EmbeddingGateway(OpenAIEmbeddingProvider(
+            api_key=settings.embedding_api_key,
+            model=settings.embedding_model,
+            dimensions=settings.embedding_dim,
+            base_url=settings.embedding_base_url,
+            timeout_seconds=settings.embedding_timeout_seconds,
+        ))
     return None
 
 
