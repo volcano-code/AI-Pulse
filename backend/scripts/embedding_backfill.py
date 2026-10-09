@@ -13,6 +13,7 @@ from app.embedding_gateway import EmbeddingGateway, FixtureEmbeddingProvider
 from app.embedding_backfill import backfill_embeddings
 from app.models import EvidenceChunk, Snapshot, Article
 from app.openai_embedding_provider import OpenAIEmbeddingProvider
+from app.backfill_preflight import preflight_database, preflight_provider
 
 
 def plan_backfill(db, settings, *, max_chunks: int):
@@ -41,17 +42,15 @@ def run(settings, *, apply: bool, confirm_provider: str | None,
         raise ValueError("Embedding provider, model and dimensions are required")
     if batch_size < 1 or batch_size > 128 or max_chunks < 1 or max_chunks > 5000:
         raise ValueError("Invalid backfill budget")
+    preflight_provider(settings, apply=apply, confirm_provider=confirm_provider,
+                       allow_paid_api=allow_paid_api)
     engine, factory = make_database(settings)
     try:
-        if apply and confirm_provider != settings.embedding_provider:
-            raise ValueError("Explicit provider confirmation required")
-        if apply and settings.embedding_provider == "openai":
-            if not allow_paid_api or settings.data_mode != "live" or settings.database_url.startswith("sqlite"):
-                raise ValueError("Paid backfill requires authorization, live data and PostgreSQL")
         with factory() as db:
+            checks = preflight_database(db, settings)
             plan = plan_backfill(db, settings, max_chunks=max_chunks)
         if not apply:
-            return {"status":"dry_run", **plan}
+            return {"status":"dry_run", "preflight":checks, **plan}
         if settings.embedding_provider == "openai":
             if not allow_paid_api or settings.data_mode != "live":
                 raise ValueError("Paid embedding calls require explicit authorization and live data")
