@@ -49,6 +49,7 @@ def backfill_embeddings(
     request_ids = []
     input_tokens = 0
     token_usage_complete = True
+    batches_completed = 0
     for offset in range(0, len(rows), batch_size):
         batch_rows = rows[offset:offset + batch_size]
         result = gateway.embed_documents([row.text for row in batch_rows])
@@ -60,6 +61,7 @@ def backfill_embeddings(
                 provider=result.provider, revision=result.revision,
             )
             embedded += 1
+        batches_completed += 1
         if result.request_id:
             request_ids.append(result.request_id)
         if result.input_tokens is None:
@@ -73,6 +75,7 @@ def backfill_embeddings(
         "dimensions": dimensions,
         "selected": len(rows),
         "embedded": embedded,
+        "batches_completed": batches_completed,
         "request_ids": request_ids,
         "input_tokens": input_tokens if token_usage_complete else None,
         "cost_usd": None,
