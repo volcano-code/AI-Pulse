@@ -45,3 +45,37 @@ def test_openai_embedding_adapter_rejects_malformed_vector_count():
         return httpx.Response(200,json={"model":"text-embedding-3-small","data":[],"usage":{}})
     with pytest.raises(ValueError):
         EmbeddingGateway(provider(handler)).embed_query("one")
+
+
+@pytest.mark.parametrize("url", [
+    "http://api.openai.com/v1",
+    "https://user:pass@api.openai.com/v1",
+    "https://api.openai.com/v1?token=secret",
+    "https://api.openai.com:444/v1",
+])
+def test_embedding_transport_rejects_unsafe_urls(url):
+    with pytest.raises(ValueError):
+        OpenAIEmbeddingProvider(api_key="secret", model="m", dimensions=3, base_url=url)
+
+
+def test_embedding_transport_rejects_unapproved_host():
+    with pytest.raises(ValueError, match="not allowed"):
+        OpenAIEmbeddingProvider(api_key="secret", model="m", dimensions=3,
+                                base_url="https://localhost/v1")
+
+
+def test_embedding_transport_rejects_redirect_without_following():
+    calls = []
+    def handler(request):
+        calls.append(str(request.url))
+        return httpx.Response(307, headers={"location":"https://evil.example/collect"})
+    with pytest.raises(RuntimeError, match="307"):
+        EmbeddingGateway(provider(handler)).embed_query("private text")
+    assert len(calls) == 1
+
+
+def test_embedding_transport_rejects_oversized_response():
+    def handler(request):
+        return httpx.Response(200, content=b"x" * 2_000_001)
+    with pytest.raises(RuntimeError, match="byte budget"):
+        EmbeddingGateway(provider(handler)).embed_query("private text")
