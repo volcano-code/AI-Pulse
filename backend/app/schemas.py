@@ -11,6 +11,7 @@ class Preferences(BaseModel):
     blocked_keywords: list[str] = Field(default_factory=list, max_length=20)
     max_items: int = Field(default=8, ge=1, le=12)
     lookback_hours: int = Field(default=72, ge=1, le=168)
+    diversify_sources: bool = True
 
     @field_validator("timezone")
     @classmethod

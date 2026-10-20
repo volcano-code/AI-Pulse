@@ -1,0 +1,19 @@
+{
+  "comparison": "same persisted corpus and same cutoff; only diversify_sources toggled",
+  "data_mode": "live",
+  "False": {
+    "items": 8,
+    "source_counts": {
+      "huggingface": 1,
+      "arxiv": 7
+    }
+  },
+  "True": {
+    "items": 8,
+    "source_counts": {
+      "huggingface": 3,
+      "arxiv": 4,
+      "langgraph": 1
+    }
+  }
+}

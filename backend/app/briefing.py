@@ -1,11 +1,13 @@
 import json
+from collections import Counter
+from math import ceil
 from datetime import timedelta
 from zoneinfo import ZoneInfo
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from .config import Settings
 from .llm import ModelClient, PROMPT_VERSION, verify_quote
-from .models import Article, Snapshot, Source, Workspace, Brief, BriefItem
+from .models import Article, Snapshot, Source, Workspace, Brief, BriefItem, EventArticle
 from .schemas import Preferences
 from .textutil import digest
 from .timeutil import iso, parse_time, utcnow
@@ -33,16 +35,46 @@ def choose_candidates(db, prefs: Preferences, cutoff, mode: str):
         score = (2 if preferred else 0) + max(0, 1 - age_hours / prefs.lookback_hours)
         reason = f"匹配关注主题：{article.topic}" if preferred else "保留主题多样性；位于当前时间窗口"
         ranked.append((score, article.published_at, article.id, article, snap, source, reason))
-    ranked.sort(key=lambda x: (-x[0], x[1], x[2]))
-    chosen, seen = [], set()
-    for _, _, _, article, snap, source, reason in ranked:
-        if snap.content_hash in seen:
-            continue
-        seen.add(snap.content_hash)
-        chosen.append((article, snap, source, reason))
-        if len(chosen) == prefs.max_items:
+    # URL/hash tie-breaks are stable across re-imports; UUIDs are not relevance.
+    ranked.sort(key=lambda row: (-row[0], -parse_time(row[1]).timestamp(),
+                                 row[3].canonical_url, row[4].content_hash))
+    if not ranked:
+        return []
+    event_by_article = dict(db.execute(select(EventArticle.article_id, EventArticle.event_id)
+                           .where(EventArticle.article_id.in_([row[3].id for row in ranked]))).all())
+    available_sources = {row[5].id for row in ranked}
+    cap = ceil(prefs.max_items / len(available_sources)) if prefs.diversify_sources else prefs.max_items
+    selected, seen_hashes, seen_events = {}, set(), set()
+    source_counts = Counter()
+
+    def take(index, row):
+        _, _, _, article, snap, source, reason = row
+        event_id = event_by_article.get(article.id)
+        if index in selected or snap.content_hash in seen_hashes or (event_id and event_id in seen_events):
+            return
+        seen_hashes.add(snap.content_hash)
+        if event_id:
+            seen_events.add(event_id)
+        source_counts[source.id] += 1
+        if prefs.diversify_sources:
+            reason += "；来源均衡；同一事件仅保留一条"
+        selected[index] = (article, snap, source, reason)
+
+    # A soft cap prevents a high-volume feed monopolising the edition. All hard
+    # time/source/mode/keyword gates were applied above. Diversity never revives
+    # an excluded article, and missing sources are not replaced with old news.
+    for index, row in enumerate(ranked):
+        if source_counts[row[5].id] < cap:
+            take(index, row)
+        if len(selected) == prefs.max_items:
             break
-    return chosen
+    # Sparse sources must not leave empty slots when other eligible facts exist.
+    for index, row in enumerate(ranked):
+        if len(selected) == prefs.max_items:
+            break
+        take(index, row)
+    return [selected[index] for index in sorted(selected)]
+
 
 
 def build_brief(session_factory, settings: Settings, progress=lambda *_: None,
@@ -60,7 +92,7 @@ def build_brief(session_factory, settings: Settings, progress=lambda *_: None,
                     "snapshots": [{"id": snap.id, "published_at": a.published_at, "topic": a.topic, "source_id": src.id, "url": a.canonical_url} for a, snap, src, _ in chosen],
                     "data_mode": settings.data_mode, "generation_mode": settings.llm_mode,
                     "model": settings.llm_model if settings.llm_mode == "live" else None,
-                    "prompt_version": PROMPT_VERSION,
+                    "prompt_version": PROMPT_VERSION, "selection_policy_version": "source-balanced-v1",
                     # Poll timestamps are observability data, not a new edition.
                     "source_health": [{k: v for k, v in item.items() if k != "last_success_at"}
                                       for item in source_health]}
@@ -142,4 +174,13 @@ def brief_payload(db, brief: Brief):
             "timezone": brief.timezone, "status": brief.status, "data_mode": brief.data_mode,
             "generation_mode": brief.generation_mode, "model": brief.model,
             "approved_at": brief.approved_at, "usage": brief.usage,
-            "source_health": brief.source_health, "items": items}
+            "source_health": brief.source_health, "items": items,
+            # Counts use frozen BriefItem source labels, not today's source name.
+            "selection_summary": {
+                "policy": ("source_balanced" if brief.preferences.get("diversify_sources") else
+                           "relevance" if "diversify_sources" in brief.preferences else "legacy"),
+                "source_count": len({item["source_name"] for item in items}),
+                "sources": [{"name": name, "items": count} for name, count in
+                            sorted(Counter(item["source_name"] for item in items).items())],
+            }}
+

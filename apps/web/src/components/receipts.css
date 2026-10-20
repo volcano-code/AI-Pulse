@@ -1,0 +1,5 @@
+/* Persisted selection and retrieval receipts, not animated reasoning. */
+.selection-summary { margin-bottom: 18px; }
+.selection-summary p { margin-bottom: 0; }
+.retrieval-receipt { padding: 16px; margin: 16px 0; border: 1px solid var(--border, #d9dedc); border-radius: 12px; background: var(--surface, #f7f9f8); }
+.retrieval-receipt p { margin: 6px 0; }

@@ -107,3 +107,65 @@ jobs:
         run: npm run typecheck
       - name: Production build
         run: npm run build
+
+  browser-e2e:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: pgvector/pgvector:0.8.6-pg17
+        env:
+          POSTGRES_DB: ai_pulse_e2e
+          POSTGRES_USER: pulse
+          POSTGRES_PASSWORD: pulse-e2e-only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U pulse -d ai_pulse_e2e"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      # Dedicated ephemeral service; the harness refuses any other DB or host.
+      AI_PULSE_E2E_DATABASE_URL: postgresql+psycopg://pulse:pulse-e2e-only@127.0.0.1:5432/ai_pulse_e2e
+      NEXT_TELEMETRY_DISABLED: "1"
+      API_INTERNAL_URL: http://127.0.0.1:8000
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: |
+            backend/requirements.txt
+            backend/requirements-postgres.txt
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+      - name: Install backend runtime and PostgreSQL driver
+        run: python -m pip install -r backend/requirements-postgres.txt
+      - name: Install frontend and Chromium
+        working-directory: apps/web
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+      - name: Build production frontend
+        working-directory: apps/web
+        run: npm run build
+      - name: Native Chromium against migrated PostgreSQL, API and SQL worker
+        working-directory: apps/web
+        run: npm run test:e2e
+      - name: Preserve browser results and failure traces (replay data only)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-e2e-${{ github.sha }}
+          path: |
+            apps/web/playwright-report/
+            apps/web/test-results/
+          if-no-files-found: warn
+          retention-days: 14

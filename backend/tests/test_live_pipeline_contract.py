@@ -38,10 +38,12 @@ class FakeFeeds:
         host = urlsplit(url).hostname
         date = iso(utcnow() - timedelta(minutes=10))
         if host == 'api.github.com':
-            return json.dumps([{'name': 'SYNTHETIC Agent release fixture',
+            return json.dumps([{'name': 'SYNTHETIC Agent durable checkpoint release',
                 'html_url': 'https://example.invalid/fake-release', 'body': 'Synthetic release evidence for contract testing only.',
                 'published_at': date}]).encode()
-        return f'<rss><channel><item><title>SYNTHETIC Agent fixture {host}</title><link>https://example.invalid/{host}</link><description>Synthetic source evidence for contract testing only.</description><pubDate>{date}</pubDate></item></channel></rss>'.encode()
+        # Distinct events: the outbox contract is not a three-report same-event test.
+        title = 'SYNTHETIC Vision image encoder' if host == 'huggingface.co' else 'SYNTHETIC Language model calibration research'
+        return f'<rss><channel><item><title>{title}</title><link>https://example.invalid/{host}</link><description>Synthetic source evidence for contract testing only.</description><pubDate>{date}</pubDate></item></channel></rss>'.encode()
 
 
 def test_live_mode_mock_feed_daily_reaches_transactional_outbox(live_env):
