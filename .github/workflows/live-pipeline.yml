@@ -1,0 +1,47 @@
+name: Live Evidence Pipeline
+
+on:
+  workflow_dispatch:
+  # One development acceptance run; normal PR CI remains network-independent.
+  push:
+    branches: ["dev/v0.6-live-evidence-pipeline"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: live-evidence-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  live-evidence:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    env:
+      PYTHONUTF8: '1'
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+      - name: Install pinned backend dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Fetch, migrate, ingest, group and verify an extractive brief
+        run: python -m scripts.live_pipeline --output-dir "${RUNNER_TEMP}/ai-pulse-live" --min-documents 20
+      - name: Keep sanitized acceptance report, not a database or raw bodies
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: live-evidence-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/ai-pulse-live/report.json
+            ${{ runner.temp }}/ai-pulse-live/brief.md
+          if-no-files-found: error
+          retention-days: 14

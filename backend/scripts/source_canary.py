@@ -1,17 +1,15 @@
-"""Manual, non-mutating live source canary with bounded network requests."""
+"""Manual, non-mutating live source canary with bounded response sizes."""
 from __future__ import annotations
 import argparse
 import json
 import time
 import urllib.error
 import urllib.request
+from app.bootstrap import DEFAULT_SOURCES
 from app.feeds import parse_feed
 
-SOURCES = (
-    ("arxiv", "https://export.arxiv.org/rss/cs.AI", "rss"),
-    ("huggingface", "https://huggingface.co/blog/feed.xml", "rss"),
-    ("langgraph", "https://api.github.com/repos/langchain-ai/langgraph/releases?per_page=10", "github"),
-)
+# Keep the probe and the ingestion pipeline on exactly the same endpoints.
+SOURCES = tuple((key, url, kind) for key, _, url, kind in DEFAULT_SOURCES)
 MAX_BYTES = 2_000_000
 
 
@@ -36,7 +34,11 @@ def check_source(name: str, url: str, kind: str, timeout: float = 12) -> dict:
             if len(payload) > MAX_BYTES:
                 raise ValueError("response_too_large")
             entries = parse_feed(payload, kind, limit=30)
-        record.update(status="ok", items=len(entries))
+        if entries:
+            record.update(status="ok", items=len(entries))
+        else:
+            # Empty feeds can be legitimate, but are not ingestion success.
+            record.update(status="empty", error_code="empty_feed")
     except urllib.error.HTTPError as exc:
         record["http_status"] = exc.code
         record["error_code"] = "http_error"
@@ -61,7 +63,7 @@ def main(argv=None) -> int:
     if not 1 <= args.timeout <= 20:
         parser.error("timeout must be between 1 and 20 seconds")
     results = [check_source(name, url, kind, args.timeout) for name, url, kind in SOURCES]
-    report = {"schema_version": 1, "live": True, "paid_model_calls": 0,
+    report = {"schema_version": 2, "live": True, "paid_model_calls": 0,
               "successful_sources": sum(x["status"] == "ok" for x in results),
               "sources": results}
     from pathlib import Path
