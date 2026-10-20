@@ -1,12 +1,14 @@
-"""OpenAI embeddings adapter behind the provider-agnostic gateway.
-
-No retry loop lives here yet: retries will be introduced only with explicit
-budget accounting. The adapter has a hard timeout and never logs credentials.
-"""
+"""Bounded OpenAI-compatible embedding transport; no implicit retries."""
 from __future__ import annotations
 
+import json
+from urllib.parse import urlsplit
+
 import httpx
+
 from .embedding_gateway import EmbeddingBatch, EmbeddingPurpose
+
+MAX_RESPONSE_BYTES = 2_000_000
 
 
 class OpenAIEmbeddingProvider:
@@ -15,10 +17,21 @@ class OpenAIEmbeddingProvider:
     def __init__(self, *, api_key: str, model: str, dimensions: int,
                  base_url: str = "https://api.openai.com/v1",
                  timeout_seconds: float = 20.0, transport=None):
+        parsed = urlsplit(base_url)
+        if (parsed.scheme != "https" or not parsed.hostname or parsed.username
+                or parsed.password or parsed.query or parsed.fragment
+                or parsed.port not in (None, 443)):
+            raise ValueError("Trusted HTTPS embedding base URL required")
+        # Custom endpoints are intentionally disallowed for real traffic until
+        # they have an explicit allowlist and network egress policy.
+        if transport is None and parsed.hostname != "api.openai.com":
+            raise ValueError("Embedding provider host is not allowed")
         if not api_key or not model:
             raise ValueError("OpenAI embedding API key and model are required")
         if dimensions < 1 or dimensions > 16000:
             raise ValueError("Invalid embedding dimensions")
+        if not 0 < timeout_seconds <= 60:
+            raise ValueError("Invalid embedding timeout")
         self.api_key, self.model, self.dimensions = api_key, model, dimensions
         self.base_url = base_url.rstrip("/")
         self.timeout_seconds = timeout_seconds
@@ -35,23 +48,38 @@ class OpenAIEmbeddingProvider:
             "encoding_format": "float",
             "dimensions": self.dimensions,
         }
-        with httpx.Client(timeout=self.timeout_seconds, transport=self.transport) as client:
-            response = client.post(
-                self.base_url + "/embeddings",
-                headers={"Authorization": "Bearer " + self.api_key, "Content-Type": "application/json"},
-                json=payload,
-            )
-        request_id = response.headers.get("x-request-id")
-        if response.status_code >= 400:
-            # Do not include response bodies: providers may echo request data.
-            raise RuntimeError(f"Embedding provider HTTP {response.status_code}; request_id={request_id or 'unknown'}")
+        request_id = None
         try:
-            body = response.json()
+            with httpx.Client(timeout=self.timeout_seconds, transport=self.transport,
+                              trust_env=False, follow_redirects=False) as client:
+                with client.stream(
+                    "POST", self.base_url + "/embeddings",
+                    headers={"Authorization": "Bearer " + self.api_key,
+                             "Content-Type": "application/json"},
+                    json=payload,
+                ) as response:
+                    request_id = response.headers.get("x-request-id")
+                    if response.status_code >= 300:
+                        raise RuntimeError(
+                            f"Embedding provider HTTP {response.status_code}; "
+                            f"request_id={request_id or 'unknown'}"
+                        )
+                    chunks, total = [], 0
+                    for chunk in response.iter_bytes():
+                        total += len(chunk)
+                        if total > MAX_RESPONSE_BYTES:
+                            raise RuntimeError("Embedding response exceeds byte budget")
+                        chunks.append(chunk)
+            body = json.loads(b"".join(chunks))
             ordered = sorted(body["data"], key=lambda row: row["index"])
             vectors = [row["embedding"] for row in ordered]
             usage = body.get("usage") or {}
-        except (KeyError, TypeError, ValueError) as exc:
-            raise RuntimeError("Embedding provider returned an invalid response") from exc
+        except RuntimeError:
+            raise
+        except Exception:
+            raise RuntimeError(
+                "Embedding request failed; billing may be unknown; no automatic retry"
+            ) from None
         return EmbeddingBatch(
             vectors=vectors,
             provider=self.provider,
