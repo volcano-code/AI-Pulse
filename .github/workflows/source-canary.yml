@@ -1,0 +1,33 @@
+name: Live Source Canary
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source-canary:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install backend dependencies
+        run: pip install -r requirements.txt
+      - name: Run live source checks
+        id: canary
+        continue-on-error: true
+        run: python -m scripts.source_canary --output source-canary.json
+      - name: Upload sanitized results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: source-canary-report
+          path: backend/source-canary.json
+          if-no-files-found: warn
+      - name: Fail if source checks failed
+        if: steps.canary.outcome == 'failure'
+        run: exit 1
