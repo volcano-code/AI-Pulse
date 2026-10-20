@@ -41,3 +41,7 @@ GitHub's browser-e2e job uses zero retries; it retains replay screenshots, HTML/
 ## Still out of scope
 
 Paid LLM/embedding canaries, semantic citation support, production deployment, SMTP delivery and a 14-day soak are not validated by this change. A fresh PostgreSQL CI service is not a production Docker deployment.
+
+## Dependency warning found during acceptance
+
+The first four-job CI run passed, including 7 native Chromium tests, but npm reported high-severity advisories for Next 16.3.6 and source-map-js 1.2.1. Updated only those package families to Next 16.3.8 and source-map-js 1.2.2, regenerated npm lockfile, and added a high/critical audit gate. The subsequent registry audit returned zero advisories; this is not a security proof. Final CI results belong in the PR acceptance comment.

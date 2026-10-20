@@ -103,6 +103,8 @@ jobs:
         run: test -f package-lock.json
       - name: Install frontend dependencies
         run: npm ci
+      - name: Dependency security audit
+        run: npm audit --audit-level=high
       - name: Typecheck
         run: npm run typecheck
       - name: Production build
