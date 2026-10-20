@@ -1,0 +1,34 @@
+{
+  "checked_at": "2026-10-20T16:34:54.505Z",
+  "scope": "npm advisory audit, not a penetration test or assurance of zero vulnerabilities",
+  "before": {
+    "info": 0,
+    "low": 0,
+    "moderate": 0,
+    "high": 2,
+    "critical": 0,
+    "total": 2
+  },
+  "after": {
+    "info": 0,
+    "low": 0,
+    "moderate": 0,
+    "high": 0,
+    "critical": 0,
+    "total": 0
+  },
+  "changes": [
+    {
+      "name": "next",
+      "from": "16.3.6",
+      "to": "16.3.8"
+    },
+    {
+      "name": "source-map-js",
+      "from": "1.2.1",
+      "to": "1.2.2"
+    }
+  ],
+  "ci_gate": "npm audit --audit-level=high",
+  "force_major_upgrade": false
+}

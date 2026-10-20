@@ -45,7 +45,7 @@ def test_source_switch(client):
 
 
 def test_preferences_saved(client):
-    data={"timezone":"Asia/Shanghai","topics":["Agent"],"blocked_keywords":["ads"],"max_items":4,"lookback_hours":24}
+    data={"timezone":"Asia/Shanghai","topics":["Agent"],"blocked_keywords":["ads"],"max_items":4,"lookback_hours":24,"diversify_sources":False}
     assert client.put("/api/v1/preferences",json=data).json()==data
     assert client.get("/api/v1/preferences").json()==data
 

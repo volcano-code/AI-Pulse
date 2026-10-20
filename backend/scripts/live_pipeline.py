@@ -189,6 +189,7 @@ def run_pipeline(output_dir: Path, *, min_documents: int = 20,
         report['brief'] = {'id': built['brief_id'], 'items': built['items'],
                            'cutoff_at': payload['cutoff_at'], 'window_start': payload['window_start'],
                            'generation_mode': payload['generation_mode'],
+                           'selection_summary': payload.get('selection_summary'),
                            'idempotent': again['cached'] and again['brief_id'] == built['brief_id']}
         (directory / 'brief.md').write_text(render_markdown(payload), encoding='utf-8')
         failed_sources = [r['source_id'] for r in report['sources'] if r['status'] != 'succeeded']

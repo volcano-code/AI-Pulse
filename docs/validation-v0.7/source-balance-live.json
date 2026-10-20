@@ -1,0 +1,103 @@
+{
+  "schema_version": 1,
+  "started_at": "2026-10-20T16:16:32.216351Z",
+  "execution": "live_network",
+  "data_mode": "live",
+  "generation_mode": "extractive",
+  "status": "passed",
+  "paid_model_calls": 0,
+  "embedding_calls": 0,
+  "email_attempts": 0,
+  "sources": [
+    {
+      "source_id": "huggingface",
+      "status": "succeeded",
+      "inserted": 30,
+      "updated": 0,
+      "unchanged": 0,
+      "rejected": 0,
+      "events_created": 30,
+      "articles_attached": 30,
+      "event_versions_created": 30,
+      "response_bytes": 261585,
+      "response_sha256": "e224a08a9f3a38c195ba00bfc5a04b736b6baacae2b9eae018664b290a3fda4b",
+      "fetched_at": "2026-10-20T16:16:32.486180Z",
+      "endpoint": "https://huggingface.co/blog/feed.xml",
+      "parser_kind": "rss",
+      "elapsed_ms": 302
+    },
+    {
+      "source_id": "arxiv",
+      "status": "succeeded",
+      "inserted": 25,
+      "updated": 0,
+      "unchanged": 0,
+      "rejected": 0,
+      "events_created": 25,
+      "articles_attached": 25,
+      "event_versions_created": 25,
+      "response_bytes": 68458,
+      "response_sha256": "78617e19a1a7044b6dfce0f96fe226506d1720052c0511e5e31214f051f2d8ad",
+      "fetched_at": "2026-10-20T16:16:32.822575Z",
+      "endpoint": "https://export.arxiv.org/api/query?search_query=cat:cs.AI+OR+cat:cs.CL&sortBy=submittedDate&sortOrder=descending&max_results=25",
+      "parser_kind": "atom",
+      "elapsed_ms": 338
+    },
+    {
+      "source_id": "langgraph",
+      "status": "succeeded",
+      "inserted": 20,
+      "updated": 0,
+      "unchanged": 0,
+      "rejected": 0,
+      "events_created": 20,
+      "articles_attached": 20,
+      "event_versions_created": 20,
+      "response_bytes": 56131,
+      "response_sha256": "6af188c94e3389ee11c3f6f343a328b6d9678a14ce7c7738e506ea6f1572cfe7",
+      "fetched_at": "2026-10-20T16:16:33.290408Z",
+      "endpoint": "https://api.github.com/repos/langchain-ai/langgraph/releases?per_page=20",
+      "parser_kind": "github",
+      "elapsed_ms": 459
+    }
+  ],
+  "failures": [],
+  "audit": {
+    "totals": {
+      "articles": 75,
+      "snapshots": 75,
+      "events": 75,
+      "event_versions": 75
+    },
+    "quotes_validated": 8,
+    "failures": [],
+    "passed": true
+  },
+  "brief": {
+    "id": "66cc2cc1-1159-4e49-bd55-768d487721db",
+    "items": 8,
+    "cutoff_at": "2026-10-20T16:16:33.379281Z",
+    "window_start": "2026-10-17T16:16:33.379281Z",
+    "generation_mode": "extractive",
+    "selection_summary": {
+      "policy": "source_balanced",
+      "source_count": 3,
+      "sources": [
+        {
+          "name": "Hugging Face Blog",
+          "items": 3
+        },
+        {
+          "name": "LangGraph Releases",
+          "items": 1
+        },
+        {
+          "name": "arXiv · cs.AI / cs.CL",
+          "items": 4
+        }
+      ]
+    },
+    "idempotent": true
+  },
+  "finished_at": "2026-10-20T16:16:33.431148Z"
+}
