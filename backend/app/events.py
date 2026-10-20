@@ -22,7 +22,16 @@ def event_tokens(title: str) -> set[str]:
         out.update(block[i:i+2] for i in range(max(0, len(block)-1)) if block[i:i+2] not in STOP)
     return out
 
+def release_identity(title: str) -> tuple[str, str] | None:
+    """Only explicit package==version titles: do not guess IDs from prose."""
+    match = re.fullmatch(r"\s*([a-zA-Z0-9][a-zA-Z0-9_.-]*)\s*==\s*([0-9][a-zA-Z0-9_.+-]*)\s*", title)
+    return (match[1].casefold(), match[2].casefold()) if match else None
+
+
 def similarity(a: str, b: str) -> float:
+    identity_a, identity_b = release_identity(a), release_identity(b)
+    if identity_a is not None and identity_b is not None and identity_a != identity_b:
+        return 0.0
     ta, tb = event_tokens(a), event_tokens(b)
     jaccard = len(ta & tb) / max(1, len(ta | tb))
     na = " ".join(sorted(ta)); nb = " ".join(sorted(tb))

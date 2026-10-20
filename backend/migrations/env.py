@@ -7,7 +7,9 @@ from app import models  # noqa: F401; registers model tables
 config = context.config
 if config.config_file_name:
     fileConfig(config.config_file_name)
-settings = Settings()
+settings = config.attributes.get("settings_override")
+if settings is None:
+    settings = Settings()
 settings.prepare_sqlite_dir()
 config.set_main_option("sqlalchemy.url", settings.database_url.replace("%", "%%"))
 target_metadata = Base.metadata
