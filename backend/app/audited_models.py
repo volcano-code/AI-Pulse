@@ -75,7 +75,7 @@ def _check_snapshot(db, settings, snapshot_id, title, text):
 
 
 def draft_brief_item(factory, settings, snapshot_id, title, text, *,
-                     model_client=None, commit_guard=None):
+                     model_client=None, commit_guard=None, retry_authorization=None):
     identity = brief_model_identity(settings, model_client)
     request_hash = fingerprint({"config": identity, "snapshot_id": snapshot_id,
                                 "title": title, "text": text[:7000],
@@ -89,7 +89,7 @@ def draft_brief_item(factory, settings, snapshot_id, title, text, *,
     handle = CallLedger(factory).reserve(
         operation_key="brief-draft:" + request_hash, request_hash=request_hash,
         kind="brief_draft", provider=identity["provider"], model=identity["model"],
-        data_mode=settings.data_mode, commit_guard=guard,
+        data_mode=settings.data_mode, commit_guard=guard, retry_authorization=retry_authorization,
     )
     if handle.reused:
         with factory() as db:

@@ -55,10 +55,10 @@ class CallLedger:
 
     def reserve(self, *, operation_key: str, request_hash: str, kind: str,
                 provider: str, model: str, data_mode: str, input_count: int = 1,
-                resource_keys: list[str] | None = None, commit_guard=None):
+                resource_keys: list[str] | None = None, commit_guard=None, retry_authorization=None):
         if (not isinstance(operation_key, str) or not 1 <= len(operation_key) <= 500
                 or not re.fullmatch(r"[a-f0-9]{64}", request_hash)
-                or kind not in {"llm_canary", "embedding_backfill", "brief_draft", "research_turn"}
+                or kind not in {"llm_canary", "embedding_backfill", "brief_draft", "research_turn", "query_embedding"}
                 or data_mode not in {"live", "replay", "canary"}
                 or not provider or len(provider) > 60 or not model or len(model) > 150
                 or type(input_count) is not int or not 1 <= input_count <= 128):
@@ -68,6 +68,15 @@ class CallLedger:
             raise ValueError("Invalid resource reservation")
         operation_hash = fingerprint(operation_key)
         identity = fingerprint([kind, provider, model, data_mode, input_count, request_hash, resources])
+        if retry_authorization is not None:
+            from .provider_reconciliation import resolve_existing
+            with self.factory() as db:
+                old = db.scalar(select(ProviderCall).where(ProviderCall.operation_hash == operation_hash))
+                if old is None or old.request_hash != identity:
+                    raise CallConflict("Authorization requires the exact existing request")
+                call_id = old.id
+            return resolve_existing(self.factory, call_id, retry_authorization=retry_authorization,
+                                    commit_guard=commit_guard)
         try:
             with self.factory.begin() as db:
                 if commit_guard:
@@ -88,7 +97,10 @@ class CallLedger:
                 if row:
                     if row.request_hash != identity:
                         raise CallConflict("Operation ID was reused with different input or configuration") from None
-                    return CallHandle(self.factory, row.id, reused=True)
+                    call_id = row.id
+                    db.close()
+                    from .provider_reconciliation import resolve_existing
+                    return resolve_existing(self.factory, call_id, commit_guard=commit_guard)
                 conflict = db.scalar(select(ProviderCallResource).where(
                     ProviderCallResource.resource_key.in_(resources)).limit(1))
                 if conflict:

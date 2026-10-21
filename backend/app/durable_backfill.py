@@ -19,7 +19,7 @@ def pending_chunks(provider, model, dimensions, mode):
 
 def durable_backfill(factory, gateway, *, data_mode: str, batch_size: int = 16,
                      max_chunks: int = 100, allow_paid_api: bool = False,
-                     confirm_provider: str | None = None) -> dict:
+                     confirm_provider: str | None = None, retry_authorization=None) -> dict:
     p = gateway.provider
     provider, model, dim = p.provider, p.model, p.dimensions
     if data_mode not in {"live", "replay"} or not 1 <= batch_size <= 128 or not 1 <= max_chunks <= 5000:
@@ -28,6 +28,8 @@ def durable_backfill(factory, gateway, *, data_mode: str, batch_size: int = 16,
         raise ValueError("Invalid embedding identity")
     if provider != "fixture" and (data_mode != "live" or not allow_paid_api or confirm_provider != provider):
         raise ValueError("Paid embedding requires explicit live-only scope and authorization")
+    if retry_authorization is not None and max_chunks > batch_size:
+        raise ValueError("Authorized retry must be limited to the original single batch")
     stmt = pending_chunks(provider, model, dim, data_mode)
     with factory() as db:
         if provider != "fixture" and db.bind.dialect.name != "postgresql":
@@ -54,7 +56,7 @@ def durable_backfill(factory, gateway, *, data_mode: str, batch_size: int = 16,
                 raise ValueError("Immutable chunk integrity check failed")
             call = ledger.reserve(operation_key="backfill:" + fingerprint(resources),
                 request_hash=fingerprint([manifests, dim, endpoint]), kind="embedding_backfill",
-                provider=provider, model=model, data_mode=data_mode, input_count=len(batch), resource_keys=resources)
+                provider=provider, model=model, data_mode=data_mode, input_count=len(batch), resource_keys=resources, retry_authorization=retry_authorization)
             call.require_fresh()
             response = gateway.embed_documents([r.text for r in batch], receipt_observer=call.observe)
             if (response.provider, response.model, response.dimensions) != (provider, model, dim):

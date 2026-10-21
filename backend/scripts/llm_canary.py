@@ -20,7 +20,7 @@ CANARY_TEXT = (
 
 
 def run_canary(settings: Settings, *, operation_id: str, confirm_live_call: bool = False,
-               transport=None) -> dict:
+               transport=None, retry_authorization=None) -> dict:
     if not confirm_live_call:
         raise ValueError("Explicit live call confirmation required")
     if settings.llm_mode != "live" or settings.data_mode != "live":
@@ -37,7 +37,7 @@ def run_canary(settings: Settings, *, operation_id: str, confirm_live_call: bool
             SYSTEM, CANARY_TEXT, "AI Pulse synthetic canary"])
         call = CallLedger(factory).reserve(operation_key="llm-canary:" + operation_id,
             request_hash=identity, kind="llm_canary", provider="fixture" if transport is not None else "openai-compatible",
-            model=settings.llm_model, data_mode="canary")
+            model=settings.llm_model, data_mode="canary", retry_authorization=retry_authorization)
         if call.reused:
             saved = call.read()
             return {"status": "passed" if saved["status"] == "succeeded" else "needs_attention",
@@ -69,13 +69,14 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--confirm-live-call", action="store_true")
     parser.add_argument("--operation-id")
+    parser.add_argument("--retry-authorization")
     args = parser.parse_args(argv)
     if not args.confirm_live_call or not args.operation_id:
         print(json.dumps({"status": "blocked", "reason": "explicit_confirmation_required"}))
         return 2
     try:
         settings = Settings(_env_file=None, data_mode="live", llm_mode="live")
-        result = run_canary(settings, operation_id=args.operation_id, confirm_live_call=True)
+        result = run_canary(settings, operation_id=args.operation_id, confirm_live_call=True, retry_authorization=args.retry_authorization)
         print(json.dumps(result, ensure_ascii=False))
         return 0 if result["status"] == "passed" else 1
     except Exception:

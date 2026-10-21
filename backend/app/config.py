@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     embedding_base_url: str = "https://api.openai.com/v1"
     embedding_api_key: str = ""
     embedding_timeout_seconds: float = Field(default=20, ge=1, le=60)
+    embedding_query_allow_paid: bool = False
     embedding_model: str = ""
     embedding_dim: int = Field(default=0, ge=0, le=16000)
     retrieval_lexical_k: int = Field(default=50, ge=1, le=100)

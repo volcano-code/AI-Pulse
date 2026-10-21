@@ -28,7 +28,7 @@ def plan_backfill(db, settings, *, max_chunks: int):
 
 
 def run(settings, *, apply: bool, confirm_provider: str | None,
-        allow_paid_api: bool, max_chunks: int, batch_size: int):
+        allow_paid_api: bool, max_chunks: int, batch_size: int, retry_authorization=None):
     if not settings.embedding_provider or not settings.embedding_model or not settings.embedding_dim:
         raise ValueError("Embedding provider, model and dimensions are required")
     if batch_size < 1 or batch_size > 128 or max_chunks < 1 or max_chunks > 5000:
@@ -58,13 +58,14 @@ def run(settings, *, apply: bool, confirm_provider: str | None,
         return durable_backfill(factory, EmbeddingGateway(provider),
                                 batch_size=batch_size, max_chunks=max_chunks,
                                 data_mode=settings.data_mode, allow_paid_api=allow_paid_api,
-                                confirm_provider=confirm_provider)
+                                confirm_provider=confirm_provider, retry_authorization=retry_authorization)
     finally:
         engine.dispose()
 
 
 def main(argv=None):
     parser=argparse.ArgumentParser()
+    parser.add_argument("--retry-authorization")
     parser.add_argument("--apply",action="store_true")
     parser.add_argument("--confirm-provider")
     parser.add_argument("--allow-paid-api",action="store_true")
@@ -74,7 +75,7 @@ def main(argv=None):
     try:
         result=run(Settings(),apply=args.apply,confirm_provider=args.confirm_provider,
                    allow_paid_api=args.allow_paid_api,max_chunks=args.max_chunks,
-                   batch_size=args.batch_size)
+                   batch_size=args.batch_size, retry_authorization=args.retry_authorization)
         print(json.dumps(result,ensure_ascii=False))
         return 0 if result["status"] in {"dry_run", "applied"} else 1
     except Exception:

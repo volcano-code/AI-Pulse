@@ -75,8 +75,13 @@ class EmbeddingGateway:
             receipt_observer(request_id=batch.request_id, input_tokens=batch.input_tokens)
         return self._validated(batch, len(texts))
 
-    def embed_query(self, text: str) -> EmbeddingBatch:
-        return self._validated(self.provider.embed([text], purpose="query"), 1)
+    def embed_query(self, text: str, *, receipt_observer=None) -> EmbeddingBatch:
+        method = getattr(self.provider, "embed_with_receipt", None)
+        batch = (method([text], purpose="query", receipt_observer=receipt_observer)
+                 if method and receipt_observer else self.provider.embed([text], purpose="query"))
+        if receipt_observer:
+            receipt_observer(request_id=batch.request_id, input_tokens=batch.input_tokens)
+        return self._validated(batch, 1)
 
     @staticmethod
     def _validated(batch: EmbeddingBatch, expected: int) -> EmbeddingBatch:
