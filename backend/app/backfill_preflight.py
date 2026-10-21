@@ -8,7 +8,7 @@ def preflight_database(db, settings) -> dict:
     dialect = db.bind.dialect.name
     if settings.embedding_provider == "openai" and dialect != "postgresql":
         raise ValueError("Paid embedding backfill requires PostgreSQL")
-    required = ("evidence_chunks", "snapshots", "articles")
+    required = ("evidence_chunks", "snapshots", "articles", "provider_calls", "provider_call_resources")
     from sqlalchemy import inspect
     tables = set(inspect(db.bind).get_table_names())
     missing = sorted(set(required) - tables)

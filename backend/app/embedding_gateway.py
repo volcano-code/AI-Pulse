@@ -65,8 +65,15 @@ class EmbeddingGateway:
     def __init__(self, provider: EmbeddingProvider):
         self.provider = provider
 
-    def embed_documents(self, texts: list[str]) -> EmbeddingBatch:
-        return self._validated(self.provider.embed(texts, purpose="document"), len(texts))
+    def embed_documents(self, texts: list[str], *, receipt_observer=None) -> EmbeddingBatch:
+        method = getattr(self.provider, "embed_with_receipt", None)
+        if receipt_observer and method:
+            batch = method(texts, purpose="document", receipt_observer=receipt_observer)
+        else:
+            batch = self.provider.embed(texts, purpose="document")
+        if receipt_observer:
+            receipt_observer(request_id=batch.request_id, input_tokens=batch.input_tokens)
+        return self._validated(batch, len(texts))
 
     def embed_query(self, text: str) -> EmbeddingBatch:
         return self._validated(self.provider.embed([text], purpose="query"), 1)

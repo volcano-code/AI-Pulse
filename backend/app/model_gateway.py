@@ -6,6 +6,7 @@ from __future__ import annotations
 import json
 from urllib.parse import urlsplit
 import httpx
+from .provider_calls import safe_request_id
 
 
 class GatewayError(RuntimeError):
@@ -14,7 +15,7 @@ class GatewayError(RuntimeError):
 
 def post_chat_completion(*, base_url: str, api_key: str, payload: dict,
                          timeout: float, max_response_bytes: int = 1_000_000,
-                         transport=None) -> dict:
+                         transport=None, receipt_observer=None) -> dict:
     parsed = urlsplit(base_url)
     if (parsed.scheme != "https" or not parsed.hostname or parsed.username
             or parsed.password or parsed.query or parsed.fragment):
@@ -29,6 +30,10 @@ def post_chat_completion(*, base_url: str, api_key: str, payload: dict,
             with client.stream("POST", base_url.rstrip("/") + "/chat/completions",
                                headers={"Authorization": "Bearer " + api_key},
                                json=payload) as response:
+                request_id = safe_request_id(response.headers.get("x-request-id"))
+                if request_id and api_key in request_id: request_id = None
+                if receipt_observer:
+                    receipt_observer(request_id=request_id, http_status=response.status_code)
                 response.raise_for_status()
                 parts, size = [], 0
                 for part in response.iter_bytes():
@@ -37,8 +42,12 @@ def post_chat_completion(*, base_url: str, api_key: str, payload: dict,
                         raise GatewayError("Model response exceeds byte budget")
                     parts.append(part)
         result = json.loads(b"".join(parts))
+        if isinstance(result, dict) and receipt_observer:
+            usage = safe_usage(result)
+            receipt_observer(input_tokens=usage["prompt_tokens"], output_tokens=usage["completion_tokens"])
         if not isinstance(result, dict) or not isinstance(result.get("choices"), list) or not result["choices"]:
             raise GatewayError("Invalid model response envelope")
+        result["_request_id"] = request_id
         return result
     except GatewayError:
         raise
