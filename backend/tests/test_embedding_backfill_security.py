@@ -37,8 +37,6 @@ def test_paid_backfill_cannot_send_replay_documents(seeded):
     with factory.begin() as db:
         for snap in db.scalars(select(Snapshot)):
             ensure_snapshot_chunks(db,snap)
-        result=backfill_embeddings(db,EmbeddingGateway(spy),max_chunks=10,data_mode="live")
-        assert result["embedded"]==0
-        assert result["input_tokens"]==0
-        assert result["cost_usd"] is None
+        with pytest.raises(ValueError, match="durable_backfill"):
+            backfill_embeddings(db,EmbeddingGateway(spy),max_chunks=10,data_mode="live")
     assert spy.calls==0

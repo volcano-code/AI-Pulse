@@ -10,7 +10,7 @@ from sqlalchemy import or_, select
 from app.config import Settings
 from app.db import make_database
 from app.embedding_gateway import EmbeddingGateway, FixtureEmbeddingProvider
-from app.embedding_backfill import backfill_embeddings
+from app.durable_backfill import durable_backfill, pending_chunks
 from app.models import EvidenceChunk, Snapshot, Article
 from app.openai_embedding_provider import OpenAIEmbeddingProvider
 from app.backfill_preflight import preflight_database, preflight_provider
@@ -19,18 +19,9 @@ from app.backfill_preflight import preflight_database, preflight_provider
 def plan_backfill(db, settings, *, max_chunks: int):
     if max_chunks < 1 or max_chunks > 5000:
         raise ValueError("max_chunks must be between 1 and 5000")
-    stmt = (select(EvidenceChunk.id)
-            .join(Snapshot, EvidenceChunk.snapshot_id == Snapshot.id)
-            .join(Article, Snapshot.article_id == Article.id)
-            .where(Article.data_mode == settings.data_mode))
-    if settings.embedding_provider:
-        stmt = stmt.where(or_(
-            EvidenceChunk.embedding_provider.is_(None),
-            EvidenceChunk.embedding_provider != settings.embedding_provider,
-            EvidenceChunk.embedding_model != settings.embedding_model,
-            EvidenceChunk.embedding_dim != settings.embedding_dim,
-        ))
-    ids = list(db.scalars(stmt.order_by(EvidenceChunk.id).limit(max_chunks + 1)))
+    stmt = pending_chunks(settings.embedding_provider, settings.embedding_model,
+                          settings.embedding_dim, settings.data_mode)
+    ids = list(db.scalars(stmt.limit(max_chunks + 1)))
     return {"selected": min(len(ids), max_chunks), "has_more": len(ids) > max_chunks,
             "provider": settings.embedding_provider, "model": settings.embedding_model,
             "dimensions": settings.embedding_dim, "data_mode": settings.data_mode}
@@ -64,11 +55,10 @@ def run(settings, *, apply: bool, confirm_provider: str | None,
             raise ValueError("Unsupported embedding provider")
         # This command is limited to a single data mode. The library backfill
         # must also apply the same scope before any write or provider call.
-        with factory.begin() as db:
-            result = backfill_embeddings(db, EmbeddingGateway(provider),
-                                         batch_size=batch_size, max_chunks=max_chunks,
-                                         data_mode=settings.data_mode)
-        return {"status":"applied", **result}
+        return durable_backfill(factory, EmbeddingGateway(provider),
+                                batch_size=batch_size, max_chunks=max_chunks,
+                                data_mode=settings.data_mode, allow_paid_api=allow_paid_api,
+                                confirm_provider=confirm_provider)
     finally:
         engine.dispose()
 
@@ -86,7 +76,7 @@ def main(argv=None):
                    allow_paid_api=args.allow_paid_api,max_chunks=args.max_chunks,
                    batch_size=args.batch_size)
         print(json.dumps(result,ensure_ascii=False))
-        return 0
+        return 0 if result["status"] in {"dry_run", "applied"} else 1
     except Exception:
         print(json.dumps({"status":"failed","reason":"backfill_validation_or_execution_failed",
                           "billing":"unknown_if_paid_request_started"}))

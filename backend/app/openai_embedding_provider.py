@@ -7,6 +7,7 @@ from urllib.parse import urlsplit
 import httpx
 
 from .embedding_gateway import EmbeddingBatch, EmbeddingPurpose
+from .provider_calls import safe_count, safe_request_id
 
 MAX_RESPONSE_BYTES = 2_000_000
 
@@ -38,6 +39,10 @@ class OpenAIEmbeddingProvider:
         self.transport = transport
 
     def embed(self, texts: list[str], *, purpose: EmbeddingPurpose) -> EmbeddingBatch:
+        return self.embed_with_receipt(texts, purpose=purpose)
+
+    def embed_with_receipt(self, texts: list[str], *, purpose: EmbeddingPurpose,
+                           receipt_observer=None) -> EmbeddingBatch:
         if purpose not in ("document", "query"):
             raise ValueError("Unsupported embedding purpose")
         if not texts or len(texts) > 128 or any(not isinstance(x, str) or not x.strip() for x in texts):
@@ -58,7 +63,10 @@ class OpenAIEmbeddingProvider:
                              "Content-Type": "application/json"},
                     json=payload,
                 ) as response:
-                    request_id = response.headers.get("x-request-id")
+                    request_id = safe_request_id(response.headers.get("x-request-id"))
+                    if request_id and self.api_key in request_id: request_id = None
+                    if receipt_observer:
+                        receipt_observer(request_id=request_id, http_status=response.status_code)
                     if response.status_code >= 300:
                         raise RuntimeError(
                             f"Embedding provider HTTP {response.status_code}; "
@@ -71,9 +79,12 @@ class OpenAIEmbeddingProvider:
                             raise RuntimeError("Embedding response exceeds byte budget")
                         chunks.append(chunk)
             body = json.loads(b"".join(chunks))
+            usage = body.get("usage") or {}
+            if not isinstance(usage, dict): usage = {}
+            if receipt_observer:
+                receipt_observer(input_tokens=safe_count(usage.get("prompt_tokens")))
             ordered = sorted(body["data"], key=lambda row: row["index"])
             vectors = [row["embedding"] for row in ordered]
-            usage = body.get("usage") or {}
         except RuntimeError:
             raise
         except Exception:
@@ -86,6 +97,6 @@ class OpenAIEmbeddingProvider:
             model=body.get("model") or self.model,
             dimensions=self.dimensions,
             revision=None,
-            input_tokens=usage.get("prompt_tokens"),
+            input_tokens=safe_count(usage.get("prompt_tokens")),
             request_id=request_id,
         )

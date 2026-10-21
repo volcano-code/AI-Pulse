@@ -27,6 +27,8 @@ def backfill_embeddings(
     if not provider or not model or not dimensions:
         raise ValueError("Embedding provider must expose provider, model and dimensions")
 
+    if provider != "fixture":
+        raise ValueError("Paid embedding requires durable_backfill and an explicit live-only scope")
     stmt = select(EvidenceChunk)
     if data_mode is not None:
         if data_mode not in ("live", "replay"):

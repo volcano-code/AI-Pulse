@@ -233,3 +233,32 @@ class EvidenceChunk(Base):
     embedded_at: Mapped[str | None] = mapped_column(String(40), nullable=True)
     created_at: Mapped[str] = mapped_column(String(40), default=now)
 
+
+
+class ProviderCall(Base):
+    __tablename__ = "provider_calls"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uid)
+    operation_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    request_hash: Mapped[str] = mapped_column(String(64))
+    kind: Mapped[str] = mapped_column(String(30))
+    provider: Mapped[str] = mapped_column(String(60))
+    model: Mapped[str] = mapped_column(String(150))
+    data_mode: Mapped[str] = mapped_column(String(20))
+    status: Mapped[str] = mapped_column(String(20), index=True)
+    input_count: Mapped[int] = mapped_column(Integer)
+    request_id: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    http_status: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    input_tokens: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    output_tokens: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    response_received: Mapped[bool] = mapped_column(Boolean, default=False)
+    elapsed_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    error_code: Mapped[str | None] = mapped_column(String(60), nullable=True)
+    summary: Mapped[dict] = mapped_column(JSON, default=dict)
+    created_at: Mapped[str] = mapped_column(String(40), default=now)
+    finished_at: Mapped[str | None] = mapped_column(String(40), nullable=True)
+
+
+class ProviderCallResource(Base):
+    __tablename__ = "provider_call_resources"
+    resource_key: Mapped[str] = mapped_column(String(64), primary_key=True)
+    call_id: Mapped[str] = mapped_column(ForeignKey("provider_calls.id"), index=True)

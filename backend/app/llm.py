@@ -5,7 +5,7 @@ import json
 from urllib.parse import urlsplit
 import httpx
 from .config import Settings
-from .model_gateway import post_chat_completion
+from .model_gateway import post_chat_completion, safe_usage
 from .schemas import LLMDraft
 
 PROMPT_VERSION = "evidence-v1"
@@ -31,8 +31,9 @@ def verify_quote(quote: str, text: str) -> tuple[int, int]:
     return start, start + len(quote)
 
 class ModelClient:
-    def __init__(self, settings: Settings, transport=None):
+    def __init__(self, settings: Settings, transport=None, receipt_observer=None):
         self.settings, self.transport = settings, transport
+        self.receipt_observer = receipt_observer
 
     def draft(self, title: str, text: str) -> tuple[LLMDraft, dict]:
         s = self.settings
@@ -58,6 +59,7 @@ class ModelClient:
             result = post_chat_completion(
                 base_url=s.llm_base_url, api_key=s.llm_api_key, payload=payload,
                 timeout=45, max_response_bytes=2_000_000, transport=self.transport,
+                receipt_observer=self.receipt_observer,
             )
             choice = result["choices"][0]
             if choice.get("finish_reason") != "stop":
@@ -66,7 +68,7 @@ class ModelClient:
                 raise ModelError("Model refused this request")
             draft = LLMDraft.model_validate_json(choice["message"]["content"])
             verify_quote(draft.evidence_quote, text[:7000])
-            usage = result.get("usage") or {}
+            usage = safe_usage(result)
             return draft, {"model_calls": 1,
                            "prompt_tokens": usage.get("prompt_tokens"),
                            "completion_tokens": usage.get("completion_tokens"),
