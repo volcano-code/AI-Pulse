@@ -19,10 +19,10 @@ def test_migration_roundtrip_preserves_existing_tables_and_refuses_audit_loss(se
         with engine.begin() as conn:
             conn.execute(text("CREATE TABLE keep_existing_data (id INTEGER PRIMARY KEY)"))
             conn.execute(text("INSERT INTO keep_existing_data VALUES (7)"))
-        command.upgrade(config, "head")
+        command.upgrade(config, "0007")
         assert "provider_calls" in inspect(engine).get_table_names()
         command.downgrade(config, "-1")
-        command.upgrade(config, "head")
+        command.upgrade(config, "0007")
         CallLedger(factory).reserve(operation_key="migration-fixture", request_hash=fingerprint("fixture"),
             kind="llm_canary", provider="fixture", model="fixture", data_mode="canary")
         with pytest.raises(RuntimeError, match="audit history"):

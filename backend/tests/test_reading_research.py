@@ -244,7 +244,7 @@ def test_model_process_no_secret_argv_env(live_contract,monkeypatch):
     observed={}
     def run(cmd,**kwargs):
         observed.update({'cmd':cmd,**kwargs})
-        return SimpleNamespace(returncode=0,stdout=b'{"message":{"role":"assistant","content":"{}"},"usage":{}}')
+        return SimpleNamespace(returncode=0,stdout=b'{"event":"result","result":{"message":{"role":"assistant","content":"{}"},"usage":{}}}\n')
     monkeypatch.setattr(research_model.subprocess,'run',run)
     ResearchModelClient(settings).next_turn([],timeout=3)
     assert settings.llm_api_key not in str(observed['cmd'])
