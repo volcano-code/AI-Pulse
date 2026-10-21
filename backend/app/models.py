@@ -272,3 +272,25 @@ class BriefModelDraft(Base):
     title: Mapped[str] = mapped_column(Text)
     summary: Mapped[str] = mapped_column(Text)
     evidence_quote: Mapped[str] = mapped_column(Text)
+
+
+class QueryEmbedding(Base):
+    """Protected vector output, never a cached evidence scope or raw query."""
+    __tablename__ = "query_embeddings"
+    call_id: Mapped[str] = mapped_column(ForeignKey("provider_calls.id"), primary_key=True)
+    dimensions: Mapped[int] = mapped_column(Integer)
+    vector: Mapped[list] = mapped_column(JSON)
+    vector_hash: Mapped[str] = mapped_column(String(64))
+
+
+class ProviderReconciliation(Base):
+    __tablename__ = "provider_reconciliations"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uid)
+    call_id: Mapped[str] = mapped_column(ForeignKey("provider_calls.id"), unique=True)
+    decision_hash: Mapped[str] = mapped_column(String(64))
+    decision: Mapped[str] = mapped_column(String(30))
+    operator_billing: Mapped[str] = mapped_column(String(20))
+    evidence_sha256: Mapped[str] = mapped_column(String(64))
+    actor_hash: Mapped[str] = mapped_column(String(64))
+    created_at: Mapped[str] = mapped_column(String(40), default=now)
+    replacement_call_id: Mapped[str | None] = mapped_column(ForeignKey("provider_calls.id"), unique=True, nullable=True)

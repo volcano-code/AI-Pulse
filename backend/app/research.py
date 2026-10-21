@@ -47,6 +47,9 @@ def execute_research(factory, settings, request, model_client=None, clock=time.m
         "retrieval_mode": settings.retrieval_mode,
         "embedding_provider": getattr(settings, "embedding_provider", "") or None,
         "embedding_model": settings.embedding_model or None,
+        "embedding_dim": settings.embedding_dim,
+        "embedding_endpoint_hash": call_fingerprint(settings.embedding_base_url.rstrip("/")),
+        "embedding_query_allow_paid": settings.embedding_query_allow_paid,
         "workflow": "bounded-evidence-v2",
         "model_config": model_identity(settings, model_client) if settings.llm_mode == "live" else None}
     request_hash = digest(json.dumps(identity, sort_keys=True, ensure_ascii=False))
@@ -103,6 +106,7 @@ def execute_research(factory, settings, request, model_client=None, clock=time.m
                 "degraded": result["degraded"],
                 "degraded_reason": result["degraded_reason"],
                 "searched_documents": result["searched_documents"],
+                "query_embedding": result.get("query_embedding"),
             }
             retrieval_receipts.append(receipt)
             found = []
@@ -233,6 +237,12 @@ def execute_research(factory, settings, request, model_client=None, clock=time.m
     answer = ("\n".join(c["text"] + " [" + ", ".join(c["evidence_ids"]) + "]" for c in claims)
               if claims else "找到以下原文证据；本次未生成已核实结论。"
               if evidence else "当前资料中没有匹配到足够证据；不能据此给出结论。")
+    embedding_receipts = [r.get("query_embedding") or {"embedding_calls": 0} for r in retrieval_receipts]
+    embedding_counts = [r.get("embedding_calls") for r in embedding_receipts]
+    embedding_calls = sum(embedding_counts) if all(type(n) is int for n in embedding_counts) else None
+    embedding_tokens = [r.get("input_tokens", 0 if r.get("embedding_calls") == 0 else None)
+                        for r in embedding_receipts]
+    embedding_input_tokens = sum(embedding_tokens) if all(type(n) is int for n in embedding_tokens) else None
     result = {"answer": answer, "claims": claims, "citations": list(evidence.values()),
               "stop_reason": stop_reason, "tool_calls": tool_calls, "model_calls": model_calls,
               "searched_documents": searched, "abstained": not claims,
@@ -247,7 +257,9 @@ def execute_research(factory, settings, request, model_client=None, clock=time.m
               "verification": "quote_location_only", "elapsed_ms": round((clock() - started) * 1000),
               "usage": {"prompt_tokens": sum(u["prompt_tokens"] for u in usages) if usages and len(usages) == model_calls and all(u["prompt_tokens"] is not None for u in usages) else None,
                         "completion_tokens": sum(u["completion_tokens"] for u in usages) if usages and len(usages) == model_calls and all(u["completion_tokens"] is not None for u in usages) else None,
-                        "cost_usd": 0 if model_calls == 0 else None},
+                        "embedding_calls": embedding_calls,
+                        "embedding_input_tokens": embedding_input_tokens,
+                        "cost_usd": 0 if model_calls == 0 and embedding_calls == 0 else None},
               "limitations": ["不进行自主联网研究", "引用位置匹配不等于语义事实核验", "模型草稿仅供人工复核，不自动分发"]}
     event("finish", "研究记录已完成并保存", status=status, stop_reason=stop_reason)
     with factory.begin() as db:

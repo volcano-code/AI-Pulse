@@ -3,7 +3,8 @@ import pytest
 from sqlalchemy import text
 from app.config import Settings
 from app.db import make_database
-from app.models import Article, EvidenceChunk, Snapshot, Source
+from app.models import Article, EvidenceChunk, Snapshot, Source, Workspace
+from app.schemas import Preferences
 from app.embeddings import ensure_snapshot_chunks, write_embedding
 from app.embedding_backfill import backfill_embeddings
 from app.embedding_gateway import EmbeddingGateway, FixtureEmbeddingProvider
@@ -104,6 +105,10 @@ def test_research_policy_executes_hybrid_on_postgres_fixture_vectors():
     engine, factory = make_database(settings)
     gateway = EmbeddingGateway(FixtureEmbeddingProvider(dimensions=8))
     source_id = "research-hybrid-policy"
+    with factory.begin() as db:
+        created_workspace = db.get(Workspace, 1) is None
+        if created_workspace:
+            db.add(Workspace(id=1, data_mode="replay", preferences=Preferences().model_dump()))
     try:
         with factory.begin() as db:
             source = Source(id=source_id, name="research hybrid", url="https://example.com/research-hybrid",
@@ -135,4 +140,9 @@ def test_research_policy_executes_hybrid_on_postgres_fixture_vectors():
             conn.execute(text("DELETE FROM snapshots WHERE article_id IN (SELECT id FROM articles WHERE source_id=:source_id)"), {"source_id": source_id})
             conn.execute(text("DELETE FROM articles WHERE source_id=:source_id"), {"source_id": source_id})
             conn.execute(text("DELETE FROM sources WHERE id=:source_id"), {"source_id": source_id})
+        with engine.begin() as conn:
+            conn.execute(text("DELETE FROM query_embeddings WHERE call_id IN (SELECT id FROM provider_calls WHERE kind='query_embedding' AND provider='fixture')"))
+            conn.execute(text("DELETE FROM provider_calls WHERE kind='query_embedding' AND provider='fixture'"))
+            if created_workspace:
+                conn.execute(text("DELETE FROM workspace WHERE id=1"))
         engine.dispose()
