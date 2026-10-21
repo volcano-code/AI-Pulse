@@ -12,6 +12,7 @@ from .schemas import Preferences
 from .textutil import digest
 from .timeutil import iso, parse_time, utcnow
 from .reading import read_status
+from .audited_models import draft_brief_item, brief_model_identity
 
 
 def choose_candidates(db, prefs: Preferences, cutoff, mode: str):
@@ -93,6 +94,7 @@ def build_brief(session_factory, settings: Settings, progress=lambda *_: None,
                     "data_mode": settings.data_mode, "generation_mode": settings.llm_mode,
                     "model": settings.llm_model if settings.llm_mode == "live" else None,
                     "prompt_version": PROMPT_VERSION, "selection_policy_version": "source-balanced-v1",
+                    "model_config": brief_model_identity(settings, model_client) if settings.llm_mode == "live" else None,
                     # Poll timestamps are observability data, not a new edition.
                     "source_health": [{k: v for k, v in item.items() if k != "last_success_at"}
                                       for item in source_health]}
@@ -104,7 +106,8 @@ def build_brief(session_factory, settings: Settings, progress=lambda *_: None,
     for index, (article, snap, source, reason) in enumerate(chosen):
         progress("extract", f"处理 {index + 1}/{len(chosen)}：{source.name}")
         if settings.llm_mode == "live":
-            draft, usage = (model_client or ModelClient(settings)).draft(snap.title, snap.text)
+            draft, usage = draft_brief_item(session_factory, settings, snap.id, snap.title, snap.text,
+                                           model_client=model_client, commit_guard=commit_guard)
             title, summary, quote = draft.title, draft.summary, draft.evidence_quote
             verification = "quote_match_only"
             usages.append(usage)
@@ -122,10 +125,12 @@ def build_brief(session_factory, settings: Settings, progress=lambda *_: None,
                            quote_start=start, quote_end=end, verification=verification,
                            relevance_reason=reason))
     progress("gate", "原文位置校验通过；模型草稿需人工确认，原文摘录仍只代表来源表述")
-    usage = {"model_calls": len(usages),
+    usage = {"model_calls": sum(u["model_calls"] for u in usages),
+             "reused_model_results": sum(bool(u.get("reused")) for u in usages),
+             "provider_call_ids": [u["provider_call_id"] for u in usages],
              "prompt_tokens": sum(u.get("prompt_tokens") or 0 for u in usages) if usages and all(u.get("prompt_tokens") is not None for u in usages) else None,
              "completion_tokens": sum(u.get("completion_tokens") or 0 for u in usages) if usages and all(u.get("completion_tokens") is not None for u in usages) else None,
-             "cost_usd": 0 if not usages else None}
+             "cost_usd": 0 if not any(u["model_calls"] for u in usages) else None}
     try:
         with session_factory.begin() as db:
             if commit_guard:
@@ -134,7 +139,7 @@ def build_brief(session_factory, settings: Settings, progress=lambda *_: None,
                           window_start=iso(cutoff - timedelta(hours=prefs.lookback_hours)),
                           timezone=prefs.timezone, data_mode=settings.data_mode,
                           generation_mode=settings.llm_mode,
-                          model=settings.llm_model if settings.llm_mode == "live" else None,
+                          model=identity["model_config"]["model"] if settings.llm_mode == "live" else None,
                           status="needs_review" if settings.llm_mode == "live" and drafts else "published",
                           prompt_version=PROMPT_VERSION, preferences=prefs.model_dump(),
                           source_health=source_health, usage=usage)
@@ -183,4 +188,3 @@ def brief_payload(db, brief: Brief):
                 "sources": [{"name": name, "items": count} for name, count in
                             sorted(Counter(item["source_name"] for item in items).items())],
             }}
-

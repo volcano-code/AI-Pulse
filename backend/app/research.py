@@ -9,12 +9,14 @@ import time
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 from sqlalchemy import func, select, update
 from .llm import EvidenceError, ModelError
-from .models import Brief, Investigation, Snapshot, Workspace
+from .models import Brief, Investigation, Snapshot, Workspace, ProviderCall
 from .research_model import ResearchModelClient, SYSTEM
 from .research_retrieval import search_research_evidence
 from .schemas import ResearchDraft
 from .textutil import digest
 from .timeutil import iso, utcnow
+from .audited_models import research_turn, model_identity
+from .provider_calls import CallHandle, safe_count, fingerprint as call_fingerprint, receipt as call_receipt
 
 
 class ResearchConflict(ValueError):
@@ -45,7 +47,8 @@ def execute_research(factory, settings, request, model_client=None, clock=time.m
         "retrieval_mode": settings.retrieval_mode,
         "embedding_provider": getattr(settings, "embedding_provider", "") or None,
         "embedding_model": settings.embedding_model or None,
-        "workflow": "bounded-evidence-v2"}
+        "workflow": "bounded-evidence-v2",
+        "model_config": model_identity(settings, model_client) if settings.llm_mode == "live" else None}
     request_hash = digest(json.dumps(identity, sort_keys=True, ensure_ascii=False))
     with factory.begin() as db:
         # Serialize creation for the single-owner workspace, not a distributed broker.
@@ -72,6 +75,7 @@ def execute_research(factory, settings, request, model_client=None, clock=time.m
     evidence, evidence_keys, trace, usages = {}, {}, [], []
     tool_calls, model_calls, searched = 0, 0, 0
     retrieval_receipts = []
+    provider_call_ids = []
 
     def event(stage, message, **extra):
         item = {"stage": stage, "message": message, "at": iso(utcnow()), **extra}
@@ -155,48 +159,53 @@ def execute_research(factory, settings, request, model_client=None, clock=time.m
             for _ in range(request.max_model_calls):
                 if remaining() <= 0:
                     raise TimeoutError("Research time budget exhausted")
-                model_calls += 1
-                # Commit before calling: interrupted provider requests are never auto-replayed.
-                event("model_request", "请求结构化工具决策或带引用草稿", attempt=model_calls)
-                turn = client.next_turn(messages, timeout=min(45, remaining()))
-                usage = turn.get("usage") or {}
-                safe_usage = {k: v if isinstance(v, int) and not isinstance(v, bool) and v >= 0 else None
-                              for k, v in ((k, usage.get(k)) for k in ("prompt_tokens", "completion_tokens"))}
-                usages.append(safe_usage)
-                event("model_response", "已收到响应；只保留公开工具事件与用量", usage=safe_usage)
-                message = turn["message"]
-                messages.append({k: message[k] for k in ("role", "content", "tool_calls") if k in message})
-                calls = message.get("tool_calls") or []
-                if calls:
-                    if not isinstance(calls, list) or len(calls) > request.max_tool_calls - tool_calls:
-                        raise TimeoutError("Model requested more tools than the remaining budget")
-                    for call in calls:
-                        call_id = call.get("id")
-                        if not isinstance(call_id, str) or not 1 <= len(call_id) <= 128 or call_id in seen_call_ids:
-                            raise ValueError("Invalid or duplicate tool call ID")
-                        seen_call_ids.add(call_id)
-                        if call.get("type") != "function":
-                            raise ValueError("Only declared function tools are accepted")
-                        function = call.get("function", {})
-                        arguments = json.loads(function.get("arguments", ""))
-                        value = tool(function.get("name"), arguments)
-                        messages.append({"role": "tool", "tool_call_id": call_id,
-                                         "content": json.dumps(value, ensure_ascii=False)})
-                    continue
-                draft = ResearchDraft.model_validate_json(message.get("content") or "")
-                if draft.insufficient_evidence:
-                    if draft.claims:
-                        raise ValueError("Abstention cannot contain asserted claims")
-                    stop_reason = "insufficient_evidence"
-                else:
-                    if not draft.claims:
-                        raise ValueError("Non-abstaining draft must contain cited claims")
-                    for claim in draft.claims:
-                        if any(eid not in evidence for eid in claim.evidence_ids):
-                            raise EvidenceError("Model referenced evidence it never retrieved")
-                    claims = [claim.model_dump() for claim in draft.claims]
-                    status = "needs_review"
-                break
+                def reserved(call_id):
+                    nonlocal model_calls
+                    model_calls += 1
+                    provider_call_ids.append(call_id)
+                    event("model_request", "请求结构化工具决策或带引用草稿",
+                          attempt=model_calls, provider_call_id=call_id)
+                with research_turn(factory, settings, run_id, model_calls + 1, messages,
+                                   client, min(45, remaining()), reserved) as turn:
+                    usage = turn.get("usage") or {}
+                    if not isinstance(usage, dict): usage = {}
+                    safe_usage = {k: safe_count(v)
+                                  for k, v in ((k, usage.get(k)) for k in ("prompt_tokens", "completion_tokens"))}
+                    usages.append(safe_usage)
+                    event("model_response", "已收到响应；只保留公开工具事件与用量", usage=safe_usage)
+                    message = turn["message"]
+                    messages.append({k: message[k] for k in ("role", "content", "tool_calls") if k in message})
+                    calls = message.get("tool_calls") or []
+                    if calls:
+                        if not isinstance(calls, list) or len(calls) > request.max_tool_calls - tool_calls:
+                            raise TimeoutError("Model requested more tools than the remaining budget")
+                        for call in calls:
+                            call_id = call.get("id")
+                            if not isinstance(call_id, str) or not 1 <= len(call_id) <= 128 or call_id in seen_call_ids:
+                                raise ValueError("Invalid or duplicate tool call ID")
+                            seen_call_ids.add(call_id)
+                            if call.get("type") != "function":
+                                raise ValueError("Only declared function tools are accepted")
+                            function = call.get("function", {})
+                            arguments = json.loads(function.get("arguments", ""))
+                            value = tool(function.get("name"), arguments)
+                            messages.append({"role": "tool", "tool_call_id": call_id,
+                                             "content": json.dumps(value, ensure_ascii=False)})
+                        continue
+                    draft = ResearchDraft.model_validate_json(message.get("content") or "")
+                    if draft.insufficient_evidence:
+                        if draft.claims:
+                            raise ValueError("Abstention cannot contain asserted claims")
+                        stop_reason = "insufficient_evidence"
+                    else:
+                        if not draft.claims:
+                            raise ValueError("Non-abstaining draft must contain cited claims")
+                        for claim in draft.claims:
+                            if any(eid not in evidence for eid in claim.evidence_ids):
+                                raise EvidenceError("Model referenced evidence it never retrieved")
+                        claims = [claim.model_dump() for claim in draft.claims]
+                        status = "needs_review"
+                    break
             else:
                 stop_reason = "model_budget_exceeded"
                 status = "partial"
@@ -227,6 +236,7 @@ def execute_research(factory, settings, request, model_client=None, clock=time.m
     result = {"answer": answer, "claims": claims, "citations": list(evidence.values()),
               "stop_reason": stop_reason, "tool_calls": tool_calls, "model_calls": model_calls,
               "searched_documents": searched, "abstained": not claims,
+              "provider_calls": [CallHandle(factory, call_id, True).read() for call_id in provider_call_ids],
               "retrieval": retrieval_receipts[-1] if retrieval_receipts else {
                   "requested_mode": settings.retrieval_mode,
                   "effective_mode": None,
@@ -235,8 +245,8 @@ def execute_research(factory, settings, request, model_client=None, clock=time.m
                   "searched_documents": 0,
               },
               "verification": "quote_location_only", "elapsed_ms": round((clock() - started) * 1000),
-              "usage": {"prompt_tokens": sum(u["prompt_tokens"] for u in usages) if usages and all(u["prompt_tokens"] is not None for u in usages) else None,
-                        "completion_tokens": sum(u["completion_tokens"] for u in usages) if usages and all(u["completion_tokens"] is not None for u in usages) else None,
+              "usage": {"prompt_tokens": sum(u["prompt_tokens"] for u in usages) if usages and len(usages) == model_calls and all(u["prompt_tokens"] is not None for u in usages) else None,
+                        "completion_tokens": sum(u["completion_tokens"] for u in usages) if usages and len(usages) == model_calls and all(u["completion_tokens"] is not None for u in usages) else None,
                         "cost_usd": 0 if model_calls == 0 else None},
               "limitations": ["不进行自主联网研究", "引用位置匹配不等于语义事实核验", "模型草稿仅供人工复核，不自动分发"]}
     event("finish", "研究记录已完成并保存", status=status, stop_reason=stop_reason)
@@ -256,9 +266,21 @@ def recover_interrupted_research(factory):
     with factory.begin() as db:
         for row in db.scalars(select(Investigation).where(Investigation.status == "running")):
             row.status, row.finished_at = "needs_attention", iso(utcnow())
+            # Recover by the deterministic operation key, even if the process
+            # died between committing an intent and writing its trace link.
+            hashes = [call_fingerprint(f"research:{row.id}:{n}") for n in range(1, 5)]
+            calls = list(db.scalars(select(ProviderCall).where(
+                ProviderCall.kind == "research_turn", ProviderCall.operation_hash.in_(hashes))))
+            calls.sort(key=lambda call: hashes.index(call.operation_hash))
+            for call in calls:
+                if call.status == "in_flight":
+                    call.status, call.error_code = "unknown", "interrupted_before_result"
+                    call.finished_at = iso(utcnow())
             row.result = {"stop_reason": "interrupted_before_result", "claims": [], "citations": [],
                           "answer": "上次 API 进程中断；保留审计记录，不自动重放可能已收费的模型请求。",
                           "model_calls": sum(x.get("stage") == "model_request" for x in row.trace),
                           "tool_calls": sum(x.get("stage") == "tool" for x in row.trace),
+                          "provider_call_ids": [call.id for call in calls],
+                          "provider_calls": [call_receipt(call) for call in calls],
                           "usage": {"cost_usd": None}}
             row.trace = [*row.trace, {"stage": "interrupted", "message": "API 重启后停止旧研究，未自动重试", "at": iso(utcnow())}]

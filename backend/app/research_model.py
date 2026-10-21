@@ -11,7 +11,7 @@ import sys
 from urllib.parse import urlsplit
 import httpx
 from .llm import ModelError
-from .model_gateway import GatewayError, post_chat_completion
+from .model_gateway import GatewayError, post_chat_completion, safe_usage
 
 TOOLS = [
     {"type": "function", "function": {
@@ -36,7 +36,7 @@ labelled needs_review; never claim to have independently verified a source.
 """
 
 
-def request_turn(base_url, key, model, messages, max_tokens, timeout, transport=None):
+def request_turn(base_url, key, model, messages, max_tokens, timeout, transport=None, receipt_observer=None):
     parsed = urlsplit(base_url)
     if (parsed.scheme != "https" or not parsed.hostname or parsed.username or parsed.password
             or parsed.query or parsed.fragment):
@@ -46,7 +46,7 @@ def request_turn(base_url, key, model, messages, max_tokens, timeout, transport=
     try:
         result = post_chat_completion(
             base_url=base_url, api_key=key, payload=payload, timeout=timeout,
-            max_response_bytes=1_000_000, transport=transport,
+            max_response_bytes=1_000_000, transport=transport, receipt_observer=receipt_observer,
         )
         choice = result["choices"][0]
         if choice.get("finish_reason") not in {"stop", "tool_calls"} or choice["message"].get("refusal"):
@@ -57,7 +57,7 @@ def request_turn(base_url, key, model, messages, max_tokens, timeout, transport=
         # Never retain provider reasoning_content or unrelated fields.
         message = {k: message[k] for k in ("content", "tool_calls") if k in message}
         message["role"] = "assistant"
-        return {"message": message, "usage": result.get("usage") or {}}
+        return {"message": message, "usage": safe_usage(result)}
     except ModelError:
         raise
     except Exception:
@@ -68,14 +68,14 @@ class ResearchModelClient:
     def __init__(self, settings, transport=None):
         self.settings, self.transport = settings, transport
 
-    def next_turn(self, messages, timeout):
+    def next_turn(self, messages, timeout, receipt_observer=None):
         s = self.settings
         if not s.llm_api_key or not s.llm_model:
             raise ModelError("Model credentials and model ID are required")
         if self.transport is not None:
             # Dependency injection for contract tests, never enabled by HTTP request.
             return request_turn(s.llm_base_url, s.llm_api_key, s.llm_model, messages,
-                                s.llm_max_output_tokens, timeout, self.transport)
+                                s.llm_max_output_tokens, timeout, self.transport, receipt_observer)
         payload = {"base_url": s.llm_base_url, "key": s.llm_api_key, "model": s.llm_model,
                    "messages": messages, "max_tokens": s.llm_max_output_tokens, "timeout": timeout}
         environment = {k: v for k, v in os.environ.items()
@@ -86,23 +86,64 @@ class ResearchModelClient:
                                     input=json.dumps(payload).encode(), stdout=subprocess.PIPE,
                                     stderr=subprocess.DEVNULL, timeout=timeout, check=False,
                                     cwd=Path(__file__).resolve().parents[1], env=environment)
-        except subprocess.TimeoutExpired:
+        except subprocess.TimeoutExpired as exc:
+            read_receipt_stream(exc.stdout or b"", receipt_observer, require_result=False)
             raise ModelError("Model turn deadline exceeded; billing may be unknown; no automatic retry") from None
-        if result.returncode or len(result.stdout) > 1_000_000:
+        value = read_receipt_stream(result.stdout, receipt_observer,
+                                    require_result=result.returncode == 0)
+        if result.returncode:
             raise ModelError("Isolated model turn failed; billing may be unknown; no automatic retry")
+        return value
+
+
+def read_receipt_stream(raw, observer=None, *, require_result=True):
+    """Relay only bounded metadata, even on child failure or timeout.
+
+    The child flushes receipt records before response validation. On a timeout
+    subprocess.run kills/reaps the child and exposes partial stdout; an incomplete
+    final record is ignored, never interpreted as a successful response.
+    """
+    if not isinstance(raw, bytes) or len(raw) > 1_020_000:
+        raise ModelError("Invalid isolated model result")
+    value = None
+    records = raw.splitlines(keepends=True)
+    if len(records) > 5:
+        raise ModelError("Invalid isolated model receipt count")
+    for line in records:
+        if not line.endswith(b"\n"):
+            continue
         try:
-            return json.loads(result.stdout)
-        except ValueError:
-            raise ModelError("Invalid isolated model result") from None
+            record = json.loads(line)
+        except (ValueError, UnicodeError):
+            continue
+        if not isinstance(record, dict):
+            continue
+        if record.get("event") == "receipt":
+            meta = record.get("receipt")
+            if isinstance(meta, dict) and observer:
+                observer(**{key: meta.get(key) for key in
+                            ("request_id", "http_status", "input_tokens", "output_tokens")})
+        elif record.get("event") == "result" and isinstance(record.get("result"), dict):
+            if value is not None:
+                raise ModelError("Duplicate isolated model result")
+            value = record["result"]
+    if require_result and value is None:
+        raise ModelError("Missing complete isolated model result")
+    return value
 
 
 def main():
+    def emit_receipt(**metadata):
+        # An internal pipe, never an application log. No prompt/response text.
+        sys.stdout.write(json.dumps({"event": "receipt", "receipt": metadata}) + "\n")
+        sys.stdout.flush()
     try:
         raw = sys.stdin.buffer.read(200_001)
         if len(raw) > 200_000:
             return 2
-        result = request_turn(**json.loads(raw))
-        sys.stdout.write(json.dumps(result, ensure_ascii=False))
+        result = request_turn(**json.loads(raw), receipt_observer=emit_receipt)
+        sys.stdout.write(json.dumps({"event": "result", "result": result}, ensure_ascii=False) + "\n")
+        sys.stdout.flush()
         return 0
     except Exception:
         return 2

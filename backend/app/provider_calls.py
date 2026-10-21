@@ -55,10 +55,10 @@ class CallLedger:
 
     def reserve(self, *, operation_key: str, request_hash: str, kind: str,
                 provider: str, model: str, data_mode: str, input_count: int = 1,
-                resource_keys: list[str] | None = None):
+                resource_keys: list[str] | None = None, commit_guard=None):
         if (not isinstance(operation_key, str) or not 1 <= len(operation_key) <= 500
                 or not re.fullmatch(r"[a-f0-9]{64}", request_hash)
-                or kind not in {"llm_canary", "embedding_backfill"}
+                or kind not in {"llm_canary", "embedding_backfill", "brief_draft", "research_turn"}
                 or data_mode not in {"live", "replay", "canary"}
                 or not provider or len(provider) > 60 or not model or len(model) > 150
                 or type(input_count) is not int or not 1 <= input_count <= 128):
@@ -70,6 +70,8 @@ class CallLedger:
         identity = fingerprint([kind, provider, model, data_mode, input_count, request_hash, resources])
         try:
             with self.factory.begin() as db:
+                if commit_guard:
+                    commit_guard(db)
                 row = ProviderCall(operation_hash=operation_hash, request_hash=identity, kind=kind,
                                    provider=provider, model=model, data_mode=data_mode,
                                    input_count=input_count, status="in_flight")
@@ -131,7 +133,7 @@ class CallHandle:
 
     def succeed(self, db, *, elapsed_ms: int, summary: dict):
         # Called inside the SAME transaction that commits the embedding vectors.
-        allowed = {"embedded", "quote_exact", "draft_requires_review"}
+        allowed = {"embedded", "quote_exact", "draft_requires_review", "turn_accepted"}
         if set(summary) - allowed or any(type(v) not in (bool, int) for v in summary.values()):
             raise ValueError("Only bounded acceptance counters may enter an audit summary")
         changed = db.execute(update(ProviderCall).where(ProviderCall.id == self.id,

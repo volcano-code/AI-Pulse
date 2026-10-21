@@ -262,3 +262,13 @@ class ProviderCallResource(Base):
     __tablename__ = "provider_call_resources"
     resource_key: Mapped[str] = mapped_column(String(64), primary_key=True)
     call_id: Mapped[str] = mapped_column(ForeignKey("provider_calls.id"), index=True)
+
+
+class BriefModelDraft(Base):
+    """Validated business output. Never a published edition or audit metadata."""
+    __tablename__ = "brief_model_drafts"
+    call_id: Mapped[str] = mapped_column(ForeignKey("provider_calls.id"), primary_key=True)
+    snapshot_id: Mapped[str] = mapped_column(ForeignKey("snapshots.id"), index=True)
+    title: Mapped[str] = mapped_column(Text)
+    summary: Mapped[str] = mapped_column(Text)
+    evidence_quote: Mapped[str] = mapped_column(Text)
