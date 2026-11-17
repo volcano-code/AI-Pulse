@@ -28,3 +28,10 @@
 ## 后续放行条件
 
 提交后核对四项 exact-commit CI（backend、postgres、frontend、browser-e2e）。本地部署、真实服务小额 canary 和长期运行仍是独立门槛。阶段 1 仅完成代码及文档修复，不宣称本机 Docker 闭环已通过。
+
+## 安全门禁发现与修复
+
+首次本 PR CI 的 frontend audit 拦截了既有 Next 16.3.8 的公开漏洞（包括 GHSA-2464-fhr4-w9xw）；未绕过 audit。升级到官方已发布 Next 16.4.6，更新 lockfile，本地 audit/typecheck/build 重跑通过。审计零告警仅代表当次 registry 数据，不是安全证明。最终升级提交仍需重新核对四项 CI，不能复用升级前结果。
+
+- [Next 16.4.6 release](https://github.com/vercel/next.js/releases/tag/v16.4.6)
+- [GitHub advisory](https://github.com/advisories/GHSA-2464-fhr4-w9xw)
