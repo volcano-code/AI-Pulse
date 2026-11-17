@@ -6,7 +6,6 @@ from pathlib import Path
 import subprocess
 import tempfile
 import time
-import urllib.request
 from uuid import uuid4
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -47,10 +46,21 @@ def main():
             return subprocess.run(base + list(cmd), cwd=ROOT, env=env, check=check, timeout=900)
 
         def request(path, port=8000):
-            req = urllib.request.Request(f'http://127.0.0.1:{port}{path}',
-                                         headers={'Authorization': 'Bearer ' + token})
-            with urllib.request.urlopen(req, timeout=5) as response:
-                return response.read()
+            # Docker internal networks do not publish host ports on all engines.
+            # Probe real HTTP from API container across the private Compose network.
+            host = 'web' if port == 3000 else 'api'
+            probe = (
+                "import os,sys,urllib.request; "
+                "req=urllib.request.Request(sys.argv[1], headers={'Authorization': "
+                "'Bearer '+os.environ['ADMIN_TOKEN']}); "
+                "sys.stdout.buffer.write(urllib.request.urlopen(req,timeout=5).read())"
+            )
+            result = subprocess.run(base + ['exec', '-T', 'api', 'python', '-c', probe,
+                                           f'http://{host}:{port}{path}'],
+                                    cwd=ROOT, env=env, capture_output=True, timeout=15)
+            if result.returncode:
+                raise OSError('Container HTTP probe failed: ' + result.stderr.decode(errors='replace')[-500:])
+            return result.stdout
 
         def ready(previous_workers=frozenset()):
             deadline = time.monotonic() + 90

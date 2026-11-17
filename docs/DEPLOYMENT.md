@@ -53,3 +53,5 @@ python scripts/compose.py --postgres -- ps
 CI 的 `docker-smoke` 对 SQLite/PostgreSQL 分别构建真实 API/Worker/Web 镜像，在随机项目及全新 volume 内以 replay/extractive/file 模式启动，验证前端及其 API 代理、Worker heartbeat、重启后内容数量保留。运行时网络标记为 internal，禁止应用容器对外采集/调用模型/发邮件；仅构建阶段下载公开依赖。Web 镜像通过 `npm ci` 严格使用提交的 lockfile。
 
 `scripts/docker_smoke.py` 只允许一次性 GitHub-hosted runner，结束时仅删除本次随机项目的 volume。不要移除保护后在用户机器运行。本地工作区无 Docker 时，不把静态检查声称为 Docker 验收；实际结果看该提交 CI。这个 smoke 不验证真实供应商/SMTP、用户机器端口或生产库备份，也不替代完整业务与灾备验收。
+
+Docker internal 网络在部分引擎上不发布宿主机端口，CI 因此从 API 容器通过私有 Compose 网络真实 HTTP 访问 Web 和 API 代理。它验证服务间网络，但不声称验证宿主机 127.0.0.1 端口发布。
