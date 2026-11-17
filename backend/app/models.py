@@ -168,6 +168,7 @@ class DailySchedule(Base):
 
 
 class Delivery(Base):
+    expires_at: Mapped[str | None] = mapped_column(String(40), nullable=True)
     __tablename__ = "deliveries"
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uid)
     brief_id: Mapped[str] = mapped_column(ForeignKey("briefs.id"), index=True)

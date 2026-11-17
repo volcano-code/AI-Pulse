@@ -268,7 +268,13 @@ def execute(factory, settings, lease, fetcher=None, model_client=None):
                     result.update(brief_result)
                 if kind == 'daily' and request.get('send') and brief_result and brief_result['items']:
                     # Durable job completion and outbox insertion commit together.
-                    delivery = enqueue_delivery(db, brief_result['brief_id'], settings)
+                    deadline = None
+                    if request.get('local_date'):
+                        from datetime import date
+                        from .scheduler import due_instant
+                        next_day = date.fromisoformat(request['local_date']) + timedelta(days=1)
+                        deadline = iso(due_instant(next_day, '00:00', request['timezone']))
+                    delivery = enqueue_delivery(db, brief_result['brief_id'], settings, expires_at=deadline)
                     result['delivery_id'] = delivery.id
                     result['delivery_status'] = delivery.status
                 elif kind == 'daily' and request.get('send'):
