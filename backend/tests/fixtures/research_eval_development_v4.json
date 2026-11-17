@@ -1,0 +1,323 @@
+{
+  "version": "synthetic-development-v4",
+  "provenance": "synthetic",
+  "label_origin": "developer_authored_not_adjudicated",
+  "split": "development",
+  "documents": [
+    {
+      "id": "n-dev-amber",
+      "article": "n-dev-amber",
+      "title": "琥珀工具",
+      "text": "琥珀工具版本2.4修复缓存错误，支持离线使用。",
+      "current": true,
+      "published_at": "2026-02-01T00:00:00Z"
+    },
+    {
+      "id": "n-dev-silver-old",
+      "article": "n-dev-silver",
+      "title": "银杉服务",
+      "text": "银杉服务在2024年每日限额为10次。",
+      "current": false,
+      "published_at": "2026-02-01T00:00:00Z"
+    },
+    {
+      "id": "n-dev-silver-new",
+      "article": "n-dev-silver",
+      "title": "银杉服务",
+      "text": "银杉服务在2026年每日限额为20次。",
+      "current": true,
+      "published_at": "2026-02-01T00:00:00Z"
+    },
+    {
+      "id": "n-dev-sand",
+      "article": "n-dev-sand",
+      "title": "流沙数据集",
+      "text": "流沙数据集包含500条英文问答和300条中文问答。",
+      "current": true,
+      "published_at": "2026-02-01T00:00:00Z"
+    },
+    {
+      "id": "n-dev-lake",
+      "article": "n-dev-lake",
+      "title": "镜湖方案",
+      "text": "镜湖方案免费开放，支持人工审核。",
+      "current": true,
+      "published_at": "2026-02-01T00:00:00Z"
+    },
+    {
+      "id": "n-dev-amber-guide",
+      "article": "n-dev-amber-guide",
+      "title": "琥珀手册",
+      "text": "琥珀工具通过配置文件开启离线模式。",
+      "current": true,
+      "published_at": "2026-02-01T00:00:00Z"
+    },
+    {
+      "id": "n-dev-limit",
+      "article": "n-dev-limit",
+      "title": "桦影接口",
+      "text": "桦影接口每分钟最多处理十二次请求。",
+      "current": true,
+      "published_at": "2026-02-01T00:00:00Z"
+    },
+    {
+      "id": "n-dev-batch",
+      "article": "n-dev-batch",
+      "title": "杉溪批处理",
+      "text": "杉溪批处理每批包含100项，超出会拒绝请求。",
+      "current": true,
+      "published_at": "2026-02-01T00:00:00Z"
+    }
+  ],
+  "historical_snapshot_ids": [
+    "n-dev-silver-old"
+  ],
+  "cases": [
+    {
+      "id": "n-dev-1",
+      "question": "琥珀工具2.4修复什么",
+      "relevant_snapshot_ids": [
+        "n-dev-amber"
+      ],
+      "tags": [
+        "version",
+        "answerable"
+      ],
+      "scope": "current",
+      "rationale": "Synthetic developer label, not independently adjudicated."
+    },
+    {
+      "id": "n-dev-2",
+      "question": "琥珀工具3.0新增功能",
+      "relevant_snapshot_ids": [],
+      "tags": [
+        "version",
+        "no_answer"
+      ],
+      "scope": "current",
+      "rationale": "Synthetic developer label, not independently adjudicated."
+    },
+    {
+      "id": "n-dev-3",
+      "question": "银杉服务2026年每日限额",
+      "relevant_snapshot_ids": [
+        "n-dev-silver-new"
+      ],
+      "tags": [
+        "date",
+        "answerable"
+      ],
+      "scope": "current",
+      "rationale": "Synthetic developer label, not independently adjudicated."
+    },
+    {
+      "id": "n-dev-4",
+      "question": "银杉服务2024年每日限额",
+      "relevant_snapshot_ids": [
+        "n-dev-silver-old"
+      ],
+      "tags": [
+        "date",
+        "answerable"
+      ],
+      "scope": "historical",
+      "rationale": "Synthetic developer label, not independently adjudicated."
+    },
+    {
+      "id": "n-dev-5",
+      "question": "银杉服务2025年每日限额",
+      "relevant_snapshot_ids": [],
+      "tags": [
+        "date",
+        "no_answer"
+      ],
+      "scope": "current",
+      "rationale": "Synthetic developer label, not independently adjudicated."
+    },
+    {
+      "id": "n-dev-6",
+      "question": "银杉服务限额不是30次吗",
+      "relevant_snapshot_ids": [
+        "n-dev-silver-new"
+      ],
+      "tags": [
+        "negation",
+        "answerable"
+      ],
+      "scope": "current",
+      "rationale": "Synthetic developer label, not independently adjudicated."
+    },
+    {
+      "id": "n-dev-7",
+      "question": "流沙数据集500条英文问答",
+      "relevant_snapshot_ids": [
+        "n-dev-sand"
+      ],
+      "tags": [
+        "quantity",
+        "answerable"
+      ],
+      "scope": "current",
+      "rationale": "Synthetic developer label, not independently adjudicated."
+    },
+    {
+      "id": "n-dev-8",
+      "question": "流沙数据集共多少问答",
+      "relevant_snapshot_ids": [
+        "n-dev-sand"
+      ],
+      "tags": [
+        "quantity",
+        "answerable"
+      ],
+      "scope": "current",
+      "rationale": "Synthetic developer label, not independently adjudicated."
+    },
+    {
+      "id": "n-dev-9",
+      "question": "镜湖方案是否免费",
+      "relevant_snapshot_ids": [
+        "n-dev-lake"
+      ],
+      "tags": [
+        "no_numeric",
+        "answerable"
+      ],
+      "scope": "current",
+      "rationale": "Synthetic developer label, not independently adjudicated."
+    },
+    {
+      "id": "n-dev-10",
+      "question": "镜湖方案在2027年还免费吗",
+      "relevant_snapshot_ids": [],
+      "tags": [
+        "date",
+        "no_answer"
+      ],
+      "scope": "current",
+      "rationale": "Synthetic developer label, not independently adjudicated."
+    },
+    {
+      "id": "n-dev-11",
+      "question": "镜湖方案多少钱每月",
+      "relevant_snapshot_ids": [],
+      "tags": [
+        "no_numeric",
+        "no_answer"
+      ],
+      "scope": "current",
+      "rationale": "Synthetic developer label, not independently adjudicated."
+    },
+    {
+      "id": "n-dev-12",
+      "question": "琥珀工具离线使用方法",
+      "relevant_snapshot_ids": [
+        "n-dev-amber",
+        "n-dev-amber-guide"
+      ],
+      "tags": [
+        "multi_source",
+        "answerable"
+      ],
+      "scope": "current",
+      "rationale": "Synthetic developer label, not independently adjudicated."
+    },
+    {
+      "id": "n-dev-13",
+      "question": "银杉服务当前限额和流沙500条问答分别是什么",
+      "relevant_snapshot_ids": [
+        "n-dev-silver-new",
+        "n-dev-sand"
+      ],
+      "tags": [
+        "comparison",
+        "answerable"
+      ],
+      "scope": "current",
+      "rationale": "Synthetic developer label, not independently adjudicated."
+    },
+    {
+      "id": "n-dev-14",
+      "question": "桦影接口每分钟12次请求吗",
+      "relevant_snapshot_ids": [
+        "n-dev-limit"
+      ],
+      "tags": [
+        "chinese_numeral",
+        "answerable"
+      ],
+      "scope": "current",
+      "rationale": "Synthetic developer label, not independently adjudicated."
+    },
+    {
+      "id": "n-dev-15",
+      "question": "杉溪批处理能装200项吗",
+      "relevant_snapshot_ids": [
+        "n-dev-batch"
+      ],
+      "tags": [
+        "comparison",
+        "answerable"
+      ],
+      "scope": "current",
+      "rationale": "Synthetic developer label, not independently adjudicated."
+    },
+    {
+      "id": "n-dev-16",
+      "question": "琥珀工具2.4多少钱",
+      "relevant_snapshot_ids": [],
+      "tags": [
+        "version",
+        "no_answer"
+      ],
+      "scope": "current",
+      "rationale": "Synthetic developer label, not independently adjudicated."
+    },
+    {
+      "id": "n-dev-17",
+      "question": "流沙数据集500条英文问答的许可证",
+      "relevant_snapshot_ids": [],
+      "tags": [
+        "quantity",
+        "no_answer"
+      ],
+      "scope": "current",
+      "rationale": "Synthetic developer label, not independently adjudicated."
+    },
+    {
+      "id": "n-dev-18",
+      "question": "杉溪批处理开发团队是谁",
+      "relevant_snapshot_ids": [],
+      "tags": [
+        "no_numeric",
+        "no_answer"
+      ],
+      "scope": "current",
+      "rationale": "Synthetic developer label, not independently adjudicated."
+    },
+    {
+      "id": "n-dev-19",
+      "question": "蓝鲸睡眠时长",
+      "relevant_snapshot_ids": [],
+      "tags": [
+        "no_overlap",
+        "no_answer"
+      ],
+      "scope": "current",
+      "rationale": "Synthetic developer label, not independently adjudicated."
+    },
+    {
+      "id": "n-dev-20",
+      "question": "流沙数据集中文问答比英文多吗",
+      "relevant_snapshot_ids": [
+        "n-dev-sand"
+      ],
+      "tags": [
+        "comparison",
+        "answerable"
+      ],
+      "scope": "current",
+      "rationale": "Synthetic developer label, not independently adjudicated."
+    }
+  ]
+}
