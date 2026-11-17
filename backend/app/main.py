@@ -15,6 +15,7 @@ from .durable import enqueue, QueueFull, IdempotencyConflict
 from .delivery import release_reviewed
 from .briefing import brief_payload
 from .config import Settings
+from .capabilities import retrieval_capability
 from .db import Base, make_database
 from .jobs import BusyError, execute_run, new_run, run_payload
 from .models import Article, Snapshot, Source, Workspace, Brief, Run, FetchRun, Event, EventArticle, EventVersion
@@ -59,6 +60,7 @@ def create_app(settings: Settings | None = None):
     def status(db: DB):
         return {"version": __version__, "data_mode": settings.data_mode,
                 "generation_mode": settings.llm_mode,
+                "retrieval": retrieval_capability(settings, engine),
                 "model": settings.llm_model if settings.llm_mode == "live" else None,
                 "articles": db.scalar(select(func.count()).select_from(Article)),
                 "events": db.scalar(select(func.count()).select_from(Event)),
@@ -68,7 +70,7 @@ def create_app(settings: Settings | None = None):
                 "runtime": "database-worker" if settings.task_mode == "durable" else "single-process-local", "server_time": iso(utcnow()),
                 "capabilities": {"bounded_evidence_research": True, "read_version_memory": True,
                                  "event_grouping": True, "event_version_history": True,
-                                 "killable_source_fetch": True, "langgraph": False, "vector_search": False, "autonomous_web_research": False,
+                                 "killable_source_fetch": True, "langgraph": False, "vector_search": True, "autonomous_web_research": False,
                                  "automatic_delivery": settings.task_mode == "durable",
                                  "durable_tasks": settings.task_mode == "durable",
                                  "smtp_delivery_configured": settings.delivery_transport == "smtp", "lexical_evidence_search": True}}
