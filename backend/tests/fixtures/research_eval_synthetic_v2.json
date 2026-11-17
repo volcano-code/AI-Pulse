@@ -1,0 +1,213 @@
+{
+  "version": "synthetic-research-v2",
+  "provenance": "synthetic",
+  "label_origin": "developer_authored_not_independently_reviewed",
+  "documents": [
+    {
+      "id": "cn",
+      "article": "cn",
+      "title": "青岚模型",
+      "text": "青岚模型采用稀疏专家架构，支持中文推理。",
+      "published_at": "2026-01-02T00:00:00Z"
+    },
+    {
+      "id": "old",
+      "article": "version",
+      "title": "星河配额",
+      "text": "2025年星河免费配额为每天十次。",
+      "published_at": "2025-01-01T00:00:00Z",
+      "current": false
+    },
+    {
+      "id": "new",
+      "article": "version",
+      "title": "星河配额",
+      "text": "2026年星河免费配额调整为每天二十次。",
+      "published_at": "2026-01-01T00:00:00Z"
+    },
+    {
+      "id": "agent",
+      "article": "agent",
+      "title": "Tool workflow",
+      "text": "An agent invokes tools with a bounded retry budget.",
+      "published_at": "2026-01-03T00:00:00Z"
+    },
+    {
+      "id": "unicode",
+      "article": "unicode",
+      "title": "Unicode",
+      "text": "İİİİİİİİİİİİİİİİİİİİİİİİİİİİİİİİİİİİİİİİİİİİİİİİİİİİİİİİİİİİİİİİİİİİİİİİİİİİİİİİİİİİİİİİİİİİİİİİİİİİagent 原始证据😀",
+      "published_at": "2026-01-04T00:00:00Z"
+    },
+    {
+      "id": "cross",
+      "article": "cross",
+      "title": "青岚评估",
+      "text": "独立评估发现青岚模型中文推理仍有局限。",
+      "published_at": "2026-01-05T00:00:00Z"
+    },
+    {
+      "id": "disabled",
+      "article": "disabled",
+      "title": "隐藏资料",
+      "text": "隐藏标记秘密能力。",
+      "published_at": "2026-01-06T00:00:00Z",
+      "enabled": false
+    },
+    {
+      "id": "live",
+      "article": "live",
+      "title": "实时资料",
+      "text": "实时标记独特能力。",
+      "published_at": "2026-01-07T00:00:00Z",
+      "data_mode": "live"
+    }
+  ],
+  "historical_snapshot_ids": [
+    "old"
+  ],
+  "cases": [
+    {
+      "id": "chinese",
+      "question": "稀疏专家",
+      "relevant_snapshot_ids": [
+        "cn"
+      ],
+      "tags": [
+        "chinese"
+      ],
+      "scope": "current",
+      "rationale": "Author-authored relevance labels; not independent human adjudication."
+    },
+    {
+      "id": "multi_source",
+      "question": "青岚模型中文推理",
+      "relevant_snapshot_ids": [
+        "cn",
+        "cross"
+      ],
+      "tags": [
+        "chinese",
+        "cross_source"
+      ],
+      "scope": "current",
+      "rationale": "Author-authored relevance labels; not independent human adjudication."
+    },
+    {
+      "id": "english",
+      "question": "bounded retry",
+      "relevant_snapshot_ids": [
+        "agent"
+      ],
+      "tags": [
+        "english"
+      ],
+      "scope": "current",
+      "rationale": "Author-authored relevance labels; not independent human adjudication."
+    },
+    {
+      "id": "unicode",
+      "question": "agent",
+      "relevant_snapshot_ids": [
+        "agent",
+        "unicode"
+      ],
+      "tags": [
+        "unicode"
+      ],
+      "scope": "current",
+      "rationale": "Author-authored relevance labels; not independent human adjudication."
+    },
+    {
+      "id": "historical",
+      "question": "星河免费配额",
+      "relevant_snapshot_ids": [
+        "old"
+      ],
+      "tags": [
+        "temporal"
+      ],
+      "scope": "historical",
+      "rationale": "Author-authored relevance labels; not independent human adjudication."
+    },
+    {
+      "id": "current",
+      "question": "星河免费配额",
+      "relevant_snapshot_ids": [
+        "new"
+      ],
+      "tags": [
+        "temporal"
+      ],
+      "scope": "current",
+      "rationale": "Author-authored relevance labels; not independent human adjudication."
+    },
+    {
+      "id": "historical_new_fact_absent",
+      "question": "二十次",
+      "relevant_snapshot_ids": [],
+      "tags": [
+        "temporal",
+        "no_answer"
+      ],
+      "scope": "historical",
+      "rationale": "Author-authored relevance labels; not independent human adjudication."
+    },
+    {
+      "id": "no_overlap",
+      "question": "量子纠缠温度",
+      "relevant_snapshot_ids": [],
+      "tags": [
+        "no_answer"
+      ],
+      "scope": "current",
+      "rationale": "Author-authored relevance labels; not independent human adjudication."
+    },
+    {
+      "id": "overlap_unanswerable",
+      "question": "青岚模型售价多少钱",
+      "relevant_snapshot_ids": [],
+      "tags": [
+        "no_answer",
+        "lexical_overlap"
+      ],
+      "scope": "current",
+      "rationale": "Corpus describes architecture and limitations, never price. Matching topic is not answer evidence."
+    },
+    {
+      "id": "disabled_scope",
+      "question": "隐藏标记",
+      "relevant_snapshot_ids": [],
+      "tags": [
+        "scope",
+        "no_answer"
+      ],
+      "scope": "current",
+      "rationale": "Author-authored relevance labels; not independent human adjudication."
+    },
+    {
+      "id": "mode_scope",
+      "question": "实时标记",
+      "relevant_snapshot_ids": [],
+      "tags": [
+        "scope",
+        "no_answer"
+      ],
+      "scope": "current",
+      "rationale": "Author-authored relevance labels; not independent human adjudication."
+    },
+    {
+      "id": "cross_language",
+      "question": "工具调用",
+      "relevant_snapshot_ids": [
+        "agent"
+      ],
+      "tags": [
+        "chinese",
+        "cross_language"
+      ],
+      "scope": "current",
+      "rationale": "Chinese paraphrase of English tool invocation; expected lexical miss is retained."
+    }
+  ]
+}
