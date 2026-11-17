@@ -13,7 +13,7 @@ from sqlalchemy.exc import IntegrityError
 from .briefing import build_brief
 from .process_fetcher import ProcessFetcher
 from .ingestion import fetch_source
-from .models import Run, Source, Workspace
+from .models import FetchRun, Run, Source, Workspace
 from .timeutil import iso, parse_time, utcnow
 
 
@@ -107,6 +107,14 @@ def recover_expired(factory, settings, now=None):
             ).values(status='recovering'))
             if not changed.rowcount:
                 continue
+            # Recovery won the conditional parent write. Close only this old
+            # attempt's unfinished fetches in the same transaction, without
+            # changing source health or any successfully committed evidence.
+            db.execute(update(FetchRun).where(
+                FetchRun.job_run_id == run_id, FetchRun.job_lease_token == token,
+                FetchRun.status == 'running'
+            ).values(status='interrupted', finished_at=iso(now),
+                     error='Worker lease expired; fetch outcome was not committed.'))
             run = db.get(Run, run_id)
             # Paid request may have completed remotely, even with no local acknowledgement.
             uncertain = bool(run.checkpoint.get('model_in_flight'))
@@ -233,7 +241,8 @@ def execute(factory, settings, lease, fetcher=None, model_client=None):
                     if by_id.get(source_id, {}).get('status') == 'succeeded':
                         continue
                     event('fetch', f'Reading configured source: {source_id}')
-                    result = fetch_source(factory, source_id, settings, fetcher or ProcessFetcher(settings), commit_guard=guard)
+                    result = fetch_source(factory, source_id, settings, fetcher or ProcessFetcher(settings), commit_guard=guard,
+                                          job_run_id=lease.run_id, job_lease_token=lease.token)
                     by_id[source_id] = result
                     checkpoint('sources', list(by_id.values()))
                 source_results = [by_id[source_id] for source_id in ids]
