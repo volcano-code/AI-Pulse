@@ -2,6 +2,7 @@ import os
 import pytest
 from sqlalchemy import text
 from app.config import Settings
+from app.capabilities import retrieval_capability
 from app.db import make_database
 from app.models import Article, EvidenceChunk, Snapshot, Source, Workspace
 from app.schemas import Preferences
@@ -83,6 +84,13 @@ def test_pgvector_fixture_backfill_is_idempotent_and_searchable():
                                      allowed_snapshot_ids=[snapshot.id])
             assert rows and rows[0]["snapshot_id"] == snapshot.id
             assert float(rows[0]["similarity"]) > 0.999
+        capability = retrieval_capability(settings.model_copy(update={
+            "retrieval_mode": "hybrid", "embedding_provider": "fixture",
+            "embedding_model": gateway.provider.model, "embedding_dim": 8,
+        }), engine)
+        assert capability["local_prerequisites_ready"] is True
+        assert capability["matching_corpus_vectors"] is True
+        assert capability["provider_health"] == "not_probed"
     finally:
         with engine.begin() as conn:
             conn.execute(text("DELETE FROM evidence_chunks WHERE snapshot_id IN (SELECT id FROM snapshots WHERE article_id IN (SELECT id FROM articles WHERE source_id=:source_id))"), {"source_id": source_id})
