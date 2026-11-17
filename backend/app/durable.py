@@ -25,6 +25,18 @@ class RetryableJob(RuntimeError):
     pass
 
 
+class ScheduledDayExpired(ValueError):
+    pass
+
+
+def check_scheduled_day(kind, request):
+    if kind == 'daily' and request.get('local_date'):
+        from zoneinfo import ZoneInfo
+        today = utcnow().astimezone(ZoneInfo(request['timezone'])).date().isoformat()
+        if today != request['local_date']:
+            raise ScheduledDayExpired('Scheduled day has passed; no late edition was queued')
+
+
 class QueueFull(RuntimeError):
     pass
 
@@ -209,11 +221,7 @@ def execute(factory, settings, lease, fetcher=None, model_client=None):
             with factory() as db:
                 run = db.get(Run, lease.run_id)
                 kind, request, saved = run.kind, dict(run.request), dict(run.checkpoint)
-            if kind == 'daily' and request.get('local_date'):
-                from zoneinfo import ZoneInfo
-                today = utcnow().astimezone(ZoneInfo(request['timezone'])).date().isoformat()
-                if today != request['local_date']:
-                    raise ValueError('Scheduled day has passed; do not silently send a late edition')
+            check_scheduled_day(kind, request)
             source_results = list(saved.get('sources', []))
             if kind in {'ingest', 'daily'} and settings.data_mode == 'live' and not saved.get('ingestion_done'):
                 with factory() as db:
@@ -243,6 +251,9 @@ def execute(factory, settings, lease, fetcher=None, model_client=None):
             with factory.begin() as db:
                 fence(db, lease)
                 run = db.get(Run, lease.run_id)
+                # Fetch/model work can cross midnight while this lease is valid.
+                # Recheck the frozen schedule date before committing any outbox entry.
+                check_scheduled_day(kind, request)
                 result = {'sources': source_results}
                 if brief_result:
                     result.update(brief_result)
@@ -268,6 +279,8 @@ def execute(factory, settings, lease, fetcher=None, model_client=None):
                 run.status = 'needs_attention' if uncertain else 'queued' if retry else 'failed'
                 run.available_at = iso(utcnow() + timedelta(seconds=settings.retry_base_seconds * 2 ** max(0, run.attempts - 1)))
                 run.error = ('Model outcome may have incurred charges; manual inspection required.' if uncertain
+                             else 'Scheduled day has passed; no late edition was queued. Completed work is retained.'
+                             if isinstance(exc, ScheduledDayExpired)
                              else f'{type(exc).__name__}: pipeline failed; inspect source status and configuration.')
                 run.finished_at = None if retry else iso(utcnow())
                 run.active_key = run.lease_token = run.lease_until = None
