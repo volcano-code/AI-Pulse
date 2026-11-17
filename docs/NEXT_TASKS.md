@@ -39,3 +39,5 @@
 新增[数字兼容性新留出实验](NUMERIC-RETRIEVAL-EXPERIMENT.md)。数字词面过滤也有有答案召回损失，未上线；下一步优先独立标签裁决和语义评审，勿继续针对已曝光合成题叠加特判。
 
 阶段3新增[版本化AI临时标注裁决流程](ANNOTATION-WORKFLOW.md)，三处歧义保留原标签并另存建议及最小充分证据集；尚未执行人类或独立语义裁决。
+
+新增[NIST真实公开短摘录评测入口](PUBLIC-EVIDENCE-EVALUATION.md)：分离public_excerpts来源、保留许可依据与真实引用URL；仅43词/9题离线冒烟测试，不等于真实embedding或人类语义验收。
