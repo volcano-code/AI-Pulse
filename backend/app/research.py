@@ -23,14 +23,27 @@ class ResearchConflict(ValueError):
     pass
 
 
+MAX_SEARCH_QUERY = 400
+
+
 class SearchArgs(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    query: str = Field(min_length=2, max_length=400)
+    query: str = Field(min_length=2, max_length=MAX_SEARCH_QUERY)
 
 
 class InspectArgs(BaseModel):
     model_config = ConfigDict(extra="forbid")
     evidence_id: str = Field(pattern=r"^E[1-9][0-9]?$", max_length=3)
+
+
+
+def citation_matches_snapshot(snapshot, citation):
+    """Exact quote identity requires valid original offsets, not permissive slicing."""
+    start, end, quote = citation.get('quote_start'), citation.get('quote_end'), citation.get('quote')
+    return (snapshot is not None and type(start) is int and type(end) is int
+            and isinstance(quote, str) and bool(quote)
+            and 0 <= start < end <= len(snapshot.text)
+            and snapshot.text[start:end] == quote)
 
 
 def investigation_payload(row):
@@ -127,7 +140,7 @@ def execute_research(factory, settings, request, model_client=None, clock=time.m
             citation = evidence[args.evidence_id]
             with factory() as db:
                 snap = db.get(Snapshot, citation["snapshot_id"])
-                if not snap or snap.text[citation["quote_start"]:citation["quote_end"]] != citation["quote"]:
+                if not citation_matches_snapshot(snap, citation):
                     raise EvidenceError("Saved evidence does not match the immutable snapshot")
             event("tool", "复核原文引用位置", tool=name, evidence_id=args.evidence_id)
             return citation | {"verification": "exact_quote_location_only"}
@@ -144,7 +157,7 @@ def execute_research(factory, settings, request, model_client=None, clock=time.m
             # Transparent deterministic expansion, not represented as autonomous thinking.
             expanded = request.question
             for term, alternative in {"智能体": "agent", "大模型": "LLM", "开源": "open source", "论文": "paper"}.items():
-                if term in request.question:
+                if term in request.question and len(expanded) + 1 + len(alternative) <= MAX_SEARCH_QUERY:
                     expanded += " " + alternative
             if not evidence and expanded != request.question and tool_calls < request.max_tool_calls:
                 tool("search_saved_evidence", {"query": expanded})
@@ -227,7 +240,7 @@ def execute_research(factory, settings, request, model_client=None, clock=time.m
         valid = {}
         for eid, citation in evidence.items():
             snap = db.get(Snapshot, citation["snapshot_id"])
-            if snap and snap.text[citation["quote_start"]:citation["quote_end"]] == citation["quote"]:
+            if citation_matches_snapshot(snap, citation):
                 valid[eid] = citation
         if len(valid) != len(evidence):
             claims = []; status, stop_reason = "needs_attention", "evidence_changed"
