@@ -29,10 +29,11 @@ jobs:
         run: python -m pytest -q
       - name: Retrieval regression gate
         run: |
-          python -m pytest -q tests/test_retrieval_eval.py tests/test_retrieval_eval_metrics.py tests/test_research_eval.py tests/test_retrieval_tradeoffs.py tests/test_numeric_retrieval_eval.py
+          python -m pytest -q tests/test_retrieval_eval.py tests/test_retrieval_eval_metrics.py tests/test_research_eval.py tests/test_retrieval_tradeoffs.py tests/test_numeric_retrieval_eval.py tests/test_annotation_review.py
           python -m app.research_eval --output research-evaluation.json
           python -m app.retrieval_tradeoffs --output retrieval-tradeoffs.json
           python -m app.numeric_retrieval_eval --output numeric-retrieval.json
+          python -m app.annotation_review --output annotation-review.json
       - uses: actions/upload-artifact@v4
         with:
           name: synthetic-research-evaluation
@@ -40,6 +41,7 @@ jobs:
             backend/research-evaluation.json
             backend/retrieval-tradeoffs.json
             backend/numeric-retrieval.json
+            backend/annotation-review.json
       - name: SQLite migration smoke
         env:
           DATABASE_URL: sqlite:///./data/ci-migration.db
