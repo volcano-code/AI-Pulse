@@ -171,3 +171,20 @@ jobs:
             apps/web/test-results/
           if-no-files-found: warn
           retention-days: 14
+
+  docker-smoke:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        database: [sqlite, postgres]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Isolated Docker build, restart and persistence smoke
+        run: python scripts/docker_smoke.py --database ${{ matrix.database }}
