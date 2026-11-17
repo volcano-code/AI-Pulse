@@ -8,6 +8,60 @@ import subprocess
 import sys
 
 
+def backup_before_migration(database_url: str, backend: Path) -> Path | None:
+    """Back up an existing SQLite database unless it is already at source head.
+
+    Call before Alembic or any app initialization. Fail closed on backup errors;
+    this is an offline migration safeguard, not a hot backup/restore workflow.
+    """
+    from contextlib import closing
+    from alembic.config import Config
+    from alembic.script import ScriptDirectory
+    from datetime import datetime, timezone
+    from sqlalchemy.engine import make_url
+    import sqlite3
+
+    url = make_url(database_url)
+    if not url.drivername.startswith("sqlite") or not url.database or url.database == ":memory:":
+        return None
+    if "uri" in url.query or url.database.startswith("file:"):
+        raise ValueError("SQLite URI databases are not supported by the safe local launcher; use a plain file path")
+    existing = Path(url.database)
+    if not existing.is_absolute():
+        existing = backend / existing
+    if not existing.is_file():
+        return None
+    config = Config(str(backend / "alembic.ini"))
+    config.set_main_option("script_location", str(backend / "migrations"))
+    target_heads = set(ScriptDirectory.from_config(config).get_heads())
+    if not target_heads:
+        raise RuntimeError("No migration head found; refusing an unprotected migration")
+    with closing(sqlite3.connect(existing)) as source:
+        try:
+            has_version = source.execute(
+                "SELECT 1 FROM sqlite_master WHERE type='table' AND name='alembic_version'").fetchone()
+            versions = {row[0] for row in source.execute("SELECT version_num FROM alembic_version")} if has_version else set()
+            if versions == target_heads:
+                return None
+            stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
+            backup = existing.with_name(existing.name + "." + stamp + ".bak")
+            # Exclusive reservation refuses an improbable filename collision;
+            # restrictive mode avoids making copied private data world-readable.
+            fd = os.open(backup, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
+            os.close(fd)
+            try:
+                with closing(sqlite3.connect(backup)) as target:
+                    source.backup(target)
+                    if target.execute("PRAGMA quick_check").fetchall() != [("ok",)]:
+                        raise RuntimeError("SQLite backup integrity check failed")
+            except BaseException:
+                backup.unlink(missing_ok=True)  # only this newly created failed copy
+                raise
+            return backup
+        except sqlite3.DatabaseError as exc:
+            raise RuntimeError("SQLite backup failed; migration was not started") from exc
+
+
 def main():
     parser=argparse.ArgumentParser(description="Start AI Pulse on http://127.0.0.1:8000")
     parser.add_argument("--demo",action="store_true",help="Explicit synthetic replay data in a separate database")
@@ -32,28 +86,9 @@ def main():
         env["LLM_MODE"]="extractive"
         env["DELIVERY_TRANSPORT"]="file"
     backend=root/"backend"
-    # Back up an older SQLite database before a schema migration. Stop all existing
-    # API/worker processes first; this backup is not a hot-deployment mechanism.
-    from sqlalchemy.engine import make_url
-    from datetime import datetime, timezone
-    import sqlite3
-    url = make_url(env["DATABASE_URL"])
-    if url.drivername.startswith("sqlite") and url.database and url.database != ":memory:":
-        existing = Path(url.database)
-        if not existing.is_absolute():
-            existing = backend / existing
-        if existing.is_file():
-            with sqlite3.connect(existing) as source:
-                try:
-                    version = source.execute("SELECT version_num FROM alembic_version").fetchone()
-                except sqlite3.OperationalError:
-                    version = None
-                if not version or version[0] != "0003":
-                    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
-                    backup = existing.with_name(existing.name + "." + stamp + ".bak")
-                    with sqlite3.connect(backup) as target:
-                        source.backup(target)
-                    print(f"Pre-migration SQLite backup: {backup}", flush=True)
+    backup = backup_before_migration(env["DATABASE_URL"], backend)
+    if backup:
+        print(f"Pre-migration SQLite backup: {backup}", flush=True)
     subprocess.run([sys.executable,"-m","alembic","upgrade","head"],cwd=backend,env=env,check=True)
     subprocess.run([sys.executable,"-m","app.cli","demo" if args.demo else "init"],cwd=backend,env=env,check=True)
     print(f"\nAI Pulse | data={mode} | http://127.0.0.1:8000 | Ctrl+C to stop",flush=True)

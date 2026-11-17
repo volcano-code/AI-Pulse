@@ -37,3 +37,11 @@ python scripts/compose.py --postgres -- ps
 5. 单独记录真实模型/Embedding/SMTP 的授权与结果。
 
 本轮 wrapper 单元测试模拟 Docker CLI，不能替代实际 Docker daemon、镜像构建、volume 或本机验收。PostgreSQL CI 使用一次性服务，不代表你的生产部署已通过。
+
+## 本地 SQLite 升级保护
+
+`run_local.py` 读取当前源码的 Alembic head，而不是固定某个历史版本；已有 SQLite 数据库版本不同（包括旧 `0003` 和无版本标记）时，先用 SQLite backup API 建立独立 `.bak` 并执行 `quick_check`，随后才允许迁移。已在当前 head 的库不反复创建副本。备份以独占文件名创建，在 POSIX 上权限为 0600；备份失败会阻止本次启动迁移。
+
+这不替代人工离线备份或完整恢复演练：升级前仍须停止所有 API/Worker，不自动恢复、不删除历史副本，也不对 PostgreSQL 创建本地备份。此保护只用于 `run_local.py`；直接运行 Alembic 或 Docker entrypoint 之前，操作者仍需自行备份。
+
+安全启动器只支持普通 SQLite 文件路径；`file:`/`uri=` URL 明确拒绝，避免 URI 与备份路径解析不一致而绕过保护。
