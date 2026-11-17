@@ -13,7 +13,7 @@ import smtplib
 import ssl
 import tempfile
 from uuid import uuid4
-from sqlalchemy import select, update
+from sqlalchemy import or_, select, update
 from .briefing import brief_payload
 from .models import Brief, Delivery
 from .textutil import digest
@@ -32,7 +32,29 @@ class DeliveryUnknown(RuntimeError):
     pass
 
 
-def enqueue_delivery(db, brief_id, settings):
+class DeliveryExpired(RuntimeError):
+    pass
+
+
+def is_expired(delivery, now=None):
+    return delivery.expires_at is not None and parse_time(delivery.expires_at) <= (now or utcnow())
+
+
+def check_deadline(delivery):
+    if is_expired(delivery):
+        raise DeliveryExpired('Scheduled delivery deadline passed; no new submission allowed')
+
+
+def expire_waiting(db, now):
+    # Never overwrite sending/unknown: an external submission may have occurred.
+    return db.execute(update(Delivery).where(
+        Delivery.status.in_(['pending', 'blocked_review']),
+        Delivery.expires_at.is_not(None), Delivery.expires_at <= iso(now)
+    ).values(status='expired', finished_at=iso(now), lease_token=None, lease_until=None,
+             last_error='Scheduled delivery deadline passed; automatic submission disabled.')).rowcount
+
+
+def enqueue_delivery(db, brief_id, settings, expires_at=None):
     brief = db.get(Brief, brief_id)
     if not brief:
         raise LookupError('Brief not found')
@@ -61,6 +83,7 @@ def enqueue_delivery(db, brief_id, settings):
         transport=settings.delivery_transport, recipient=settings.mail_to, sender=settings.mail_from,
         subject=subject, body_text='\n'.join(lines),
         message_id=f'<{ident}@{settings.mail_from.rsplit("@", 1)[-1]}>',
+        expires_at=expires_at,
         status='pending' if brief.status == 'published' else 'blocked_review')
     db.add(delivery)
     db.flush()
@@ -68,6 +91,7 @@ def enqueue_delivery(db, brief_id, settings):
 
 
 def release_reviewed(db, brief_id):
+    expire_waiting(db, utcnow())
     db.execute(update(Delivery).where(Delivery.brief_id == brief_id,
         Delivery.status == 'blocked_review').values(status='pending', available_at=iso(utcnow())))
 
@@ -88,6 +112,7 @@ class FileTransport:
         self.directory = Path(directory)
 
     def send(self, delivery):
+        check_deadline(delivery)
         self.directory.mkdir(parents=True, exist_ok=True)
         target = self.directory / f'{delivery.id}.eml'
         # Deterministic bytes and pathname make file-mode recovery idempotent.
@@ -116,6 +141,7 @@ class SMTPTransport:
         client = None
         sending = False
         try:
+            check_deadline(delivery)
             context = ssl.create_default_context()
             if s.smtp_security == 'ssl':
                 client = smtplib.SMTP_SSL(s.smtp_host, s.smtp_port, timeout=s.smtp_timeout_seconds, context=context)
@@ -127,6 +153,7 @@ class SMTPTransport:
             if s.smtp_username:
                 client.login(s.smtp_username, s.smtp_password)
             payload = message_bytes(delivery)
+            check_deadline(delivery)  # TLS/authentication can cross midnight
             sending = True
             refused = client.sendmail(delivery.sender, [delivery.recipient], payload)
             if refused:
@@ -135,7 +162,7 @@ class SMTPTransport:
                     raise DeliveryRetryable('Recipient temporarily rejected')
                 raise DeliveryPermanent('Recipient permanently rejected')
             return None
-        except (DeliveryRetryable, DeliveryPermanent):
+        except (DeliveryRetryable, DeliveryPermanent, DeliveryExpired):
             raise
         except smtplib.SMTPRecipientsRefused as exc:
             codes = [value[0] for value in exc.recipients.values()]
@@ -168,17 +195,18 @@ class SMTPTransport:
 def recover_deliveries(factory, now=None, max_attempts=3):
     now = now or utcnow()
     with factory() as db:
-        candidates = [(d.id, d.lease_token, d.transport, d.attempts) for d in db.scalars(select(Delivery).where(
+        candidates = [(d.id, d.lease_token, d.transport, d.attempts, d.expires_at) for d in db.scalars(select(Delivery).where(
             Delivery.status == 'sending', Delivery.lease_until <= iso(now)))]
     count = 0
-    for ident, token, transport, attempts in candidates:
+    for ident, token, transport, attempts, deadline in candidates:
+        expired = deadline is not None and parse_time(deadline) <= now
         with factory.begin() as db:
             changed = db.execute(update(Delivery).where(Delivery.id == ident,
                 Delivery.status == 'sending', Delivery.lease_token == token,
                 Delivery.lease_until <= iso(now)).values(
-                    status='unknown' if transport == 'smtp' else 'failed' if attempts >= max_attempts else 'pending',
+                    status='unknown' if transport == 'smtp' else 'expired' if expired else 'failed' if attempts >= max_attempts else 'pending',
                     lease_token=None, lease_until=None, available_at=iso(now),
-                    finished_at=iso(now) if transport == 'smtp' or attempts >= max_attempts else None,
+                    finished_at=iso(now) if transport == 'smtp' or expired or attempts >= max_attempts else None,
                     last_error='Sender lease expired. SMTP is not automatically resent; file retries are bounded.'))
             count += changed.rowcount
     return count
@@ -186,6 +214,8 @@ def recover_deliveries(factory, now=None, max_attempts=3):
 
 def deliver_one(factory, settings, transport=None):
     now = utcnow()
+    with factory.begin() as db:
+        expire_waiting(db, now)
     with factory() as db:
         ident = db.scalar(select(Delivery.id).where(Delivery.status == 'pending',
             Delivery.available_at <= iso(now)).order_by(Delivery.created_at, Delivery.id).limit(1))
@@ -194,7 +224,8 @@ def deliver_one(factory, settings, transport=None):
     token = str(uuid4())
     with factory.begin() as db:
         changed = db.execute(update(Delivery).where(Delivery.id == ident,
-            Delivery.status == 'pending', Delivery.available_at <= iso(now)).values(
+            Delivery.status == 'pending', Delivery.available_at <= iso(now),
+            or_(Delivery.expires_at.is_(None), Delivery.expires_at > iso(utcnow()))).values(
                 status='sending', lease_token=token,
                 lease_until=iso(now + timedelta(seconds=max(180, settings.smtp_timeout_seconds * 8))),
                 attempts=Delivery.attempts + 1))
@@ -207,11 +238,14 @@ def deliver_one(factory, settings, transport=None):
             return ident
     status, error, artifact = None, None, None
     try:
+        check_deadline(delivery)
         if delivery.transport != settings.delivery_transport:
             raise DeliveryPermanent('Configured transport changed; inspect pending delivery')
         actual = transport or (FileTransport(settings.outbox_dir) if delivery.transport == 'file' else SMTPTransport(settings))
         artifact = actual.send(delivery)
         status = 'file_written' if delivery.transport == 'file' else 'sent'
+    except DeliveryExpired:
+        status, error = 'expired', 'Scheduled delivery deadline passed; no new submission allowed.'
     except DeliveryRetryable:
         status = 'pending' if delivery.attempts < settings.job_max_attempts else 'failed'
         error = 'Submission rejected before acceptance; bounded retry queued.' if status == 'pending' else 'Delivery retry budget exhausted.'
@@ -222,6 +256,8 @@ def deliver_one(factory, settings, transport=None):
     except Exception:
         status = ('pending' if delivery.attempts < settings.job_max_attempts else 'failed') if delivery.transport == 'file' else 'unknown'
         error = 'Local file write failed.' if delivery.transport == 'file' else 'Unexpected SMTP outcome; automatic resend disabled.'
+    if status == 'pending' and is_expired(delivery):
+        status, error = 'expired', 'Scheduled delivery deadline passed; retry disabled.'
     with factory.begin() as db:
         # Token fencing prevents a late sender overwriting an already-recovered outcome.
         db.execute(update(Delivery).where(Delivery.id == ident, Delivery.lease_token == token,
@@ -239,11 +275,13 @@ def resolve_unknown(factory, delivery_id, resolution):
         delivery = db.get(Delivery, delivery_id)
         if not delivery:
             raise LookupError('Delivery not found')
+        expired = is_expired(delivery)
+        outcome = 'sent' if resolution == 'confirmed_sent' else 'expired' if expired else 'pending'
         changed = db.execute(update(Delivery).where(Delivery.id == delivery_id,
             Delivery.status == 'unknown').values(
-                status='sent' if resolution == 'confirmed_sent' else 'pending',
+                status=outcome,
                 last_error=f'Manual resolution: {resolution}',
-                finished_at=iso(utcnow()) if resolution == 'confirmed_sent' else None,
+                finished_at=iso(utcnow()) if outcome != 'pending' else None,
                 available_at=iso(utcnow())))
         if not changed.rowcount:
             raise ValueError('Only unknown delivery outcomes may be resolved')
@@ -251,4 +289,4 @@ def resolve_unknown(factory, delivery_id, resolution):
 
 def delivery_payload(item):
     return {key: getattr(item, key) for key in ['id', 'brief_id', 'transport', 'recipient', 'subject',
-        'status', 'attempts', 'created_at', 'available_at', 'finished_at', 'last_error', 'artifact_name']}
+        'status', 'attempts', 'created_at', 'available_at', 'finished_at', 'last_error', 'artifact_name', 'expires_at']}
