@@ -1,0 +1,16 @@
+{
+  "version": "coverage-tradeoff-v1",
+  "thresholds": [
+    0.0,
+    0.25,
+    0.5,
+    0.75,
+    1.0
+  ],
+  "k": 5,
+  "selection": "maximize development no-answer abstention without reducing development macro Recall@5; tie chooses lowest threshold",
+  "candidate": "post-filter production top-5 by distinct query token coverage in snapshot title plus full text; no rerank or refill",
+  "scope": "Offline experiment only; no production policy change",
+  "freeze": "Threshold grid and selection rule fixed before any v3 results; heldout authored by separate worker without running retrieval",
+  "limitations": "Synthetic author-separated holdout, not independent human gold or real-world generalization; repeated use after publication is regression only"
+}
