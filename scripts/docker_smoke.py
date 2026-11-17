@@ -54,6 +54,7 @@ def main():
 
         def ready(previous_workers=frozenset()):
             deadline = time.monotonic() + 90
+            last_error = None
             while time.monotonic() < deadline:
                 try:
                     status = json.loads(request('/api/v1/status', 3000))
@@ -66,9 +67,10 @@ def main():
                     assert automation['delivery_transport'] == 'file'
                     assert b'<html' in request('/', 3000).lower()
                     return status, workers
-                except (OSError, ValueError, AssertionError):
+                except (OSError, ValueError, AssertionError) as exc:
+                    last_error = repr(exc)
                     time.sleep(2)
-            raise RuntimeError('API, frontend proxy, worker or replay safety checks did not become ready')
+            raise RuntimeError('Readiness failed: ' + str(last_error))
 
         try:
             compose('config', '--quiet')
@@ -86,6 +88,9 @@ def main():
             print(json.dumps({'database': args.database, 'docker_build': 'passed',
                               'api_web_proxy_worker': 'passed', 'restart_counts': 'preserved',
                               'scope': 'ephemeral replay only; not production acceptance'}))
+        except Exception:
+            compose('logs', '--tail', '60', 'api', 'worker', 'web', check=False)
+            raise
         finally:
             # Exact random project selected above, never the user's ai-pulse project.
             compose('down', '--volumes', '--remove-orphans')
