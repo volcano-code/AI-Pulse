@@ -1,0 +1,338 @@
+{
+  "version": "synthetic-research-holdout-v3",
+  "provenance": "synthetic",
+  "label_origin": "independent_developer_authored_not_adjudicated",
+  "split": "holdout",
+  "documents": [
+    {
+      "id": "violet_arch",
+      "article": "violet_arch",
+      "title": "紫苑模型架构",
+      "text": "紫苑模型采用滑动窗口注意力，重点处理长文档检索。",
+      "published_at": "2026-02-01T00:00:00Z"
+    },
+    {
+      "id": "violet_eval",
+      "article": "violet_eval",
+      "title": "紫苑独立测试",
+      "text": "外部测试发现紫苑模型在跨段落指代问题上容易遗漏证据，未测试短文本问答。",
+      "published_at": "2026-02-01T00:00:00Z"
+    },
+    {
+      "id": "amber_old",
+      "article": "amber",
+      "title": "琥珀服务配额",
+      "text": "2025年琥珀服务的免费调用额度为每周七次。",
+      "published_at": "2025-02-01T00:00:00Z",
+      "current": false
+    },
+    {
+      "id": "amber_new",
+      "article": "amber",
+      "title": "琥珀服务配额",
+      "text": "2026年琥珀服务的免费调用额度改为每周十四次。",
+      "published_at": "2026-02-02T00:00:00Z"
+    },
+    {
+      "id": "ibis_tools",
+      "article": "ibis_tools",
+      "title": "Ibis workflow",
+      "text": "Ibis executes tools sequentially and stops after two failed attempts. It does not launch tools concurrently.",
+      "published_at": "2026-02-01T00:00:00Z"
+    },
+    {
+      "id": "nebula_cache",
+      "article": "nebula_cache",
+      "title": "Nebula cache policy",
+      "text": "Nebula stores reusable query results for twelve hours, then evicts them. A cache miss triggers a new lookup.",
+      "published_at": "2026-02-01T00:00:00Z"
+    },
+    {
+      "id": "tide_formats",
+      "article": "tide_formats",
+      "title": "潮汐文档导入",
+      "text": "潮汐导入器只支持纯文本和Markdown文件，不接受扫描版PDF。",
+      "published_at": "2026-02-01T00:00:00Z"
+    },
+    {
+      "id": "cedar_private",
+      "article": "cedar_private",
+      "title": "秘境项目",
+      "text": "秘境特征码雨燕用于内部审批。",
+      "published_at": "2026-02-01T00:00:00Z",
+      "enabled": false
+    },
+    {
+      "id": "lighthouse_live",
+      "article": "lighthouse_live",
+      "title": "灯塔实时实验",
+      "text": "灯塔专属代号雪豹用于实时实验。",
+      "published_at": "2026-02-01T00:00:00Z",
+      "data_mode": "live"
+    },
+    {
+      "id": "comet_offline",
+      "article": "comet_offline",
+      "title": "彗星离线模式",
+      "text": "彗星在离线模式下只读取本机缓存，无法获取当天远程更新。",
+      "published_at": "2026-02-01T00:00:00Z"
+    },
+    {
+      "id": "violet_limits",
+      "article": "violet_limits",
+      "title": "紫苑发布声明",
+      "text": "紫苑发布方称长文档检索是设计目标，并说明实验尚未覆盖医疗诊断。",
+      "published_at": "2026-02-01T00:00:00Z"
+    }
+  ],
+  "historical_snapshot_ids": [
+    "amber_old"
+  ],
+  "cases": [
+    {
+      "id": "window_arch",
+      "question": "哪个模型采用滑动窗口注意力？",
+      "relevant_snapshot_ids": [
+        "violet_arch"
+      ],
+      "tags": [
+        "chinese",
+        "answerable"
+      ],
+      "scope": "current",
+      "rationale": "架构快照明确写明紫苑采用此机制。"
+    },
+    {
+      "id": "violet_failure",
+      "question": "外部测试发现紫苑模型在什么问题上遗漏证据？",
+      "relevant_snapshot_ids": [
+        "violet_eval"
+      ],
+      "tags": [
+        "chinese",
+        "answerable"
+      ],
+      "scope": "current",
+      "rationale": "外部测试明确指出跨段落指代问题。"
+    },
+    {
+      "id": "violet_claim_vs_test",
+      "question": "紫苑发布方的长文档目标和外部测试局限分别是什么？",
+      "relevant_snapshot_ids": [
+        "violet_limits",
+        "violet_eval"
+      ],
+      "tags": [
+        "chinese",
+        "cross_source"
+      ],
+      "scope": "current",
+      "rationale": "需要发布声明中的设计目标与外部评估中的跨段落失败共同回答。"
+    },
+    {
+      "id": "violet_medical",
+      "question": "紫苑实验是否覆盖医疗诊断？",
+      "relevant_snapshot_ids": [
+        "violet_limits"
+      ],
+      "tags": [
+        "chinese",
+        "negative_fact"
+      ],
+      "scope": "current",
+      "rationale": "声明明确说尚未覆盖；有明确否定证据，不应作为无答案。"
+    },
+    {
+      "id": "violet_price",
+      "question": "紫苑模型每月订阅费是多少？",
+      "relevant_snapshot_ids": [],
+      "tags": [
+        "no_answer",
+        "lexical_overlap"
+      ],
+      "scope": "current",
+      "rationale": "资料描述架构和测试，没有任何价格或订阅收费信息。"
+    },
+    {
+      "id": "violet_accuracy",
+      "question": "紫苑跨段落指代测试准确率是多少百分比？",
+      "relevant_snapshot_ids": [],
+      "tags": [
+        "no_answer",
+        "lexical_overlap"
+      ],
+      "scope": "current",
+      "rationale": "外部测试仅定性说明遗漏，未给出百分比。"
+    },
+    {
+      "id": "amber_history",
+      "question": "当时琥珀服务每周免费额度是多少？",
+      "relevant_snapshot_ids": [
+        "amber_old"
+      ],
+      "tags": [
+        "chinese",
+        "temporal"
+      ],
+      "scope": "historical",
+      "rationale": "历史快照只包含2025年每周七次，不允许引用当前十四次。"
+    },
+    {
+      "id": "amber_current",
+      "question": "琥珀服务当前每周免费额度是多少？",
+      "relevant_snapshot_ids": [
+        "amber_new"
+      ],
+      "tags": [
+        "chinese",
+        "temporal"
+      ],
+      "scope": "current",
+      "rationale": "当前版本固定为2026年每周十四次。"
+    },
+    {
+      "id": "amber_new_unknown_history",
+      "question": "2026年琥珀每周十四次额度何时正式推出？",
+      "relevant_snapshot_ids": [],
+      "tags": [
+        "no_answer",
+        "temporal",
+        "lexical_overlap"
+      ],
+      "scope": "historical",
+      "rationale": "历史范围仅有2025年旧额度，不支持未来2026年新额度的推出时间。"
+    },
+    {
+      "id": "amber_old_unknown_current",
+      "question": "琥珀在2025年的免费额度为多少？",
+      "relevant_snapshot_ids": [],
+      "tags": [
+        "no_answer",
+        "temporal",
+        "lexical_overlap"
+      ],
+      "scope": "current",
+      "rationale": "当前范围排除旧版本，新文只给2026年额度，不能倒推2025年额度。"
+    },
+    {
+      "id": "ibis_english",
+      "question": "How many failed attempts make Ibis stop?",
+      "relevant_snapshot_ids": [
+        "ibis_tools"
+      ],
+      "tags": [
+        "english",
+        "answerable"
+      ],
+      "scope": "current",
+      "rationale": "英文资料明确两次失败后停止。"
+    },
+    {
+      "id": "ibis_chinese",
+      "question": "Ibis工作流的工具调用是顺序执行还是并发执行？",
+      "relevant_snapshot_ids": [
+        "ibis_tools"
+      ],
+      "tags": [
+        "chinese",
+        "cross_language"
+      ],
+      "scope": "current",
+      "rationale": "英文资料sequentially及does not launch concurrently直接支持中文问题。"
+    },
+    {
+      "id": "nebula_synonym",
+      "question": "Nebula的查询结果缓存多久后失效？",
+      "relevant_snapshot_ids": [
+        "nebula_cache"
+      ],
+      "tags": [
+        "chinese",
+        "cross_language"
+      ],
+      "scope": "current",
+      "rationale": "英文twelve hours then evicts明确支持十二小时后失效。"
+    },
+    {
+      "id": "nebula_price",
+      "question": "Nebula缓存服务收费多少钱？",
+      "relevant_snapshot_ids": [],
+      "tags": [
+        "no_answer",
+        "lexical_overlap"
+      ],
+      "scope": "current",
+      "rationale": "缓存策略没有收费信息。"
+    },
+    {
+      "id": "import_negative",
+      "question": "潮汐导入器能接受扫描版PDF吗？",
+      "relevant_snapshot_ids": [
+        "tide_formats"
+      ],
+      "tags": [
+        "chinese",
+        "negative_fact"
+      ],
+      "scope": "current",
+      "rationale": "资料明确不接受扫描版PDF。"
+    },
+    {
+      "id": "import_size",
+      "question": "潮汐Markdown导入最大支持多少MB？",
+      "relevant_snapshot_ids": [],
+      "tags": [
+        "no_answer",
+        "lexical_overlap"
+      ],
+      "scope": "current",
+      "rationale": "只说明格式，不说明文件大小限制。"
+    },
+    {
+      "id": "offline",
+      "question": "彗星离线模式能获取当天远程更新吗？",
+      "relevant_snapshot_ids": [
+        "comet_offline"
+      ],
+      "tags": [
+        "chinese",
+        "negative_fact"
+      ],
+      "scope": "current",
+      "rationale": "资料明确无法获取当天远程更新。"
+    },
+    {
+      "id": "disabled_boundary",
+      "question": "秘境特征码雨燕用于什么？",
+      "relevant_snapshot_ids": [],
+      "tags": [
+        "scope",
+        "no_answer"
+      ],
+      "scope": "current",
+      "rationale": "唯一相关快照来源禁用，不属于允许检索范围。"
+    },
+    {
+      "id": "mode_boundary",
+      "question": "灯塔专属代号雪豹用于什么？",
+      "relevant_snapshot_ids": [],
+      "tags": [
+        "scope",
+        "no_answer"
+      ],
+      "scope": "current",
+      "rationale": "唯一相关快照是live模式，而该评测只允许replay。"
+    },
+    {
+      "id": "unrelated",
+      "question": "海豚的睡眠周期有多长？",
+      "relevant_snapshot_ids": [],
+      "tags": [
+        "no_answer",
+        "no_overlap"
+      ],
+      "scope": "current",
+      "rationale": "允许语料没有动物睡眠相关信息。"
+    }
+  ]
+}
