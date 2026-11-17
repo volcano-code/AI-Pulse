@@ -111,3 +111,43 @@ def test_sqlite_uri_cannot_bypass_backup(tmp_path, suffix):
     with sqlite3.connect(source) as db:
         assert db.execute("SELECT version_num FROM alembic_version").fetchone() == ("0003",)
     assert not list(tmp_path.glob("*.bak"))
+
+
+def test_backup_restore_to_new_file_can_upgrade_again(tmp_path, monkeypatch):
+    from contextlib import closing
+
+    source = tmp_path / "original.db"
+    restored = tmp_path / "restored.db"
+    marker = "恢复演练：中文证据保持完整"
+    monkeypatch.setenv("DATABASE_URL", f"sqlite:///{source}")
+    cfg = config(source)
+    command.upgrade(cfg, "0003")
+    with closing(sqlite3.connect(source)) as db:
+        db.execute("CREATE TABLE preserved_test_marker (value TEXT)")
+        db.execute("INSERT INTO preserved_test_marker VALUES (?)", (marker,))
+        db.commit()
+    backup = local.backup_before_migration(f"sqlite:///{source}", BACKEND)
+    assert backup and backup not in (source, restored)
+    backup_bytes = backup.read_bytes()
+    command.upgrade(cfg, "head")
+    source_bytes = source.read_bytes()
+
+    # Exclusive creation restores only into a third, disposable file. Neither
+    # the upgraded source nor the recovery backup may be overwritten.
+    with restored.open("xb") as target:
+        target.write(backup_bytes)
+    with closing(sqlite3.connect(restored)) as db:
+        assert db.execute("PRAGMA integrity_check").fetchall() == [("ok",)]
+        assert db.execute("SELECT version_num FROM alembic_version").fetchone() == ("0003",)
+        assert db.execute("SELECT value FROM preserved_test_marker").fetchone() == (marker,)
+
+    monkeypatch.setenv("DATABASE_URL", f"sqlite:///{restored}")
+    restored_cfg = config(restored)
+    command.upgrade(restored_cfg, "head")
+    head = ScriptDirectory.from_config(restored_cfg).get_current_head()
+    with closing(sqlite3.connect(restored)) as db:
+        assert db.execute("PRAGMA integrity_check").fetchall() == [("ok",)]
+        assert db.execute("SELECT version_num FROM alembic_version").fetchone() == (head,)
+        assert db.execute("SELECT value FROM preserved_test_marker").fetchone() == (marker,)
+    assert source.read_bytes() == source_bytes
+    assert backup.read_bytes() == backup_bytes

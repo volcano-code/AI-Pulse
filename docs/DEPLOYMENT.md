@@ -45,3 +45,11 @@ python scripts/compose.py --postgres -- ps
 这不替代人工离线备份或完整恢复演练：升级前仍须停止所有 API/Worker，不自动恢复、不删除历史副本，也不对 PostgreSQL 创建本地备份。此保护只用于 `run_local.py`；直接运行 Alembic 或 Docker entrypoint 之前，操作者仍需自行备份。
 
 安全启动器只支持普通 SQLite 文件路径；`file:`/`uri=` URL 明确拒绝，避免 URI 与备份路径解析不一致而绕过保护。
+
+## 隔离的恢复与容器验证
+
+`test_backup_restore_to_new_file_can_upgrade_again`（在 `test_local_migration_backup.py` 中）用一次性 SQLite 库完成 0003→备份→升级→恢复到第三个新文件→再次升级，检查中文内容、版本、完整性与原文件不变。恢复演练不覆盖源库或备份；实际恢复前仍应停服，并在另一个新路径验证。
+
+CI 的 `docker-smoke` 对 SQLite/PostgreSQL 分别构建真实 API/Worker/Web 镜像，在随机项目及全新 volume 内以 replay/extractive/file 模式启动，验证前端及其 API 代理、Worker heartbeat、重启后内容数量保留。运行时网络标记为 internal，禁止应用容器对外采集/调用模型/发邮件；仅构建阶段下载公开依赖。Web 镜像通过 `npm ci` 严格使用提交的 lockfile。
+
+`scripts/docker_smoke.py` 只允许一次性 GitHub-hosted runner，结束时仅删除本次随机项目的 volume。不要移除保护后在用户机器运行。本地工作区无 Docker 时，不把静态检查声称为 Docker 验收；实际结果看该提交 CI。这个 smoke 不验证真实供应商/SMTP、用户机器端口或生产库备份，也不替代完整业务与灾备验收。
