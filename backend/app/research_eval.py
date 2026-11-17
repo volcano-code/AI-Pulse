@@ -1,4 +1,4 @@
-"""Offline synthetic research benchmark. Never accepts a DB URL or calls providers."""
+"""Offline evidence benchmark; synthetic by default. No DB URL or provider calls."""
 from __future__ import annotations
 
 import argparse
@@ -18,10 +18,10 @@ from .retrieval_eval import recall_at_k, reciprocal_rank
 DEFAULT_DATASET = Path(__file__).resolve().parents[1] / 'tests/fixtures/research_eval_synthetic_v2.json'
 
 
-def load_benchmark(path):
+def load_benchmark(path, *, expected_provenance="synthetic"):
     data = json.loads(Path(path).read_text(encoding='utf-8'))
-    if data.get('provenance') != 'synthetic' or not data.get('label_origin'):
-        raise ValueError('This isolated runner only supports explicitly labeled synthetic fixtures')
+    if data.get('provenance') != expected_provenance or not data.get('label_origin'):
+        raise ValueError('Dataset provenance must match the explicitly selected loader')
     docs, cases = data['documents'], data['cases']
     ids = [d['id'] for d in docs]
     if not docs or len(ids) != len(set(ids)) or not cases:
@@ -44,10 +44,10 @@ def seed(db, data):
     for row in data['documents']:
         aid = row['article']
         if db.get(Article, aid) is None:
-            db.add(Source(id=aid, name=aid, url=f'https://example.invalid/{aid}',
+            db.add(Source(id=aid, name=aid, url=row.get('source_url', f'https://example.invalid/{aid}'),
                           kind='rss', enabled=row.get('enabled', True)))
             db.flush()
-            db.add(Article(id=aid, source_id=aid, canonical_url=f'https://example.invalid/{aid}',
+            db.add(Article(id=aid, source_id=aid, canonical_url=row.get('source_url', f'https://example.invalid/{aid}'),
                            title=row['title'], data_mode=row.get('data_mode', 'replay'),
                            published_at=row['published_at']))
             db.flush()
@@ -72,10 +72,10 @@ def seed(db, data):
     db.commit()
 
 
-def evaluate(path=DEFAULT_DATASET, k=5):
+def evaluate(path=DEFAULT_DATASET, k=5, *, dataset_loader=load_benchmark):
     if type(k) is not int or not 1 <= k <= 5:
         raise ValueError('k must be between 1 and 5 (lexical API limit)')
-    data = load_benchmark(path)
+    data = dataset_loader(path)
     engine = create_engine('sqlite:///:memory:')
     Base.metadata.create_all(engine)
     results = []
@@ -131,7 +131,7 @@ def evaluate(path=DEFAULT_DATASET, k=5):
         provenance=data['provenance'], label_origin=data['label_origin'], k=k, results=results,
         real_embedding={'status':'not_run','reason':'isolated SQLite; no provider configured'},
         human_semantic_review={'status':'not_reviewed','support_rate':None},
-        limitations=['Synthetic development fixture, not held-out or real-world evaluation',
+        limitations=[('Synthetic development fixture' if data['provenance']=='synthetic' else 'Public excerpt fixture with AI-authored questions and labels') + ', not held-out or representative real-world evaluation',
                      'Exact quotation does not establish semantic support or truth',
                      'Hybrid degraded to lexical; this is not a vector quality comparison',
                      'No generated answers: unsupported-answer rate is not measured',

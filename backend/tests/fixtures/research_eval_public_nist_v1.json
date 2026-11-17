@@ -1,0 +1,191 @@
+{
+  "version": "public-nist-excerpts-v1",
+  "provenance": "public_excerpts",
+  "label_origin": "ai_authored_not_human_adjudicated",
+  "split": "public_smoke_not_holdout",
+  "documents": [
+    {
+      "id": "pub-voluntary",
+      "article": "pub-voluntary",
+      "title": "AI RMF overview",
+      "title_origin": "AI-authored descriptive label",
+      "text": "The NIST AI Risk Management Framework (AI RMF) is intended for voluntary use",
+      "published_at": null,
+      "source_url": "https://www.nist.gov/itl/ai-risk-management-framework",
+      "source_attribution": "National Institute of Standards and Technology (NIST)",
+      "retrieved_on": "2026-11-17",
+      "source_locator": "Overview of the AI RMF, first sentence of second paragraph",
+      "excerpt_sha256": "09915397ce049b28436e526555ae8e31af64e3675a9b91c83285b3a07dcf708d",
+      "extraction": "Contiguous visible-text excerpt; HTML link boundaries normalized to spaces; no full page saved",
+      "rights": {
+        "policy_url": "https://www.nist.gov/copyrights-disclaimers",
+        "policy_section": "Use of NIST information",
+        "basis": "NIST permits copying/distribution of information unless marked copyrighted; selected text inspected with no separate copyright notice observed",
+        "review_kind": "AI-assisted source and policy check; not legal opinion",
+        "copyrighted_third_party_material": false
+      },
+      "source_date_note": "Page publication date not captured; do not substitute framework release date."
+    },
+    {
+      "id": "pub-launch",
+      "article": "pub-launch",
+      "title": "AI RMF launch",
+      "title_origin": "AI-authored descriptive label",
+      "text": "released the NIST AI Risk Management Framework (AI RMF 1.0) on Thursday, January 26, 2023.",
+      "published_at": "2022-12-22T00:00:00Z",
+      "source_url": "https://www.nist.gov/news-events/events/2023/01/nist-ai-risk-management-framework-ai-rmf-10-launch",
+      "source_attribution": "National Institute of Standards and Technology (NIST)",
+      "retrieved_on": "2026-11-17",
+      "source_locator": "Event description, substring of opening sentence",
+      "excerpt_sha256": "687ebc3a4ad14df9a81002d0f18c4511ac6055159e70c82cd638afdfc11568bb",
+      "extraction": "Contiguous visible-text excerpt; HTML link boundaries normalized to spaces; no full page saved",
+      "rights": {
+        "policy_url": "https://www.nist.gov/copyrights-disclaimers",
+        "policy_section": "Use of NIST information",
+        "basis": "NIST permits copying/distribution of information unless marked copyrighted; selected text inspected with no separate copyright notice observed",
+        "review_kind": "AI-assisted source and policy check; not legal opinion",
+        "copyrighted_third_party_material": false
+      },
+      "source_date_note": "Page Created December 22, 2022; excerpt describes release event on January 26, 2023."
+    },
+    {
+      "id": "pub-ssdf",
+      "article": "pub-ssdf",
+      "title": "SSDF security objective",
+      "title_origin": "AI-authored descriptive label",
+      "text": "Following these practices should help software producers reduce the number of vulnerabilities in released software",
+      "published_at": "2022-02-03T00:00:00Z",
+      "source_url": "https://csrc.nist.gov/pubs/sp/800/218/final",
+      "source_attribution": "National Institute of Standards and Technology (NIST)",
+      "retrieved_on": "2026-11-17",
+      "source_locator": "Abstract, prefix of second paragraph",
+      "excerpt_sha256": "a100eae244f470e9d8868c6c9cd7c3e82479cfbb442297f98b19dd3d56a47a07",
+      "extraction": "Contiguous visible-text excerpt; HTML link boundaries normalized to spaces; no full page saved",
+      "rights": {
+        "policy_url": "https://www.nist.gov/copyrights-disclaimers",
+        "policy_section": "Use of NIST information",
+        "basis": "NIST permits copying/distribution of information unless marked copyrighted; selected text inspected with no separate copyright notice observed",
+        "review_kind": "AI-assisted source and policy check; not legal opinion",
+        "copyrighted_third_party_material": false
+      }
+    }
+  ],
+  "historical_snapshot_ids": [],
+  "cases": [
+    {
+      "id": "pub-q1",
+      "question": "Is the AI RMF intended for voluntary use?",
+      "relevant_snapshot_ids": [
+        "pub-voluntary"
+      ],
+      "tags": [
+        "english",
+        "answerable"
+      ],
+      "scope": "current",
+      "rationale": "AI-authored labels judged only against saved excerpts, not entire linked documents; no human adjudication."
+    },
+    {
+      "id": "pub-q2",
+      "question": "AI RMF 1.0 released on what date?",
+      "relevant_snapshot_ids": [
+        "pub-launch"
+      ],
+      "tags": [
+        "english",
+        "date",
+        "answerable"
+      ],
+      "scope": "current",
+      "rationale": "AI-authored labels judged only against saved excerpts, not entire linked documents; no human adjudication."
+    },
+    {
+      "id": "pub-q3",
+      "question": "What should practices reduce in released software?",
+      "relevant_snapshot_ids": [
+        "pub-ssdf"
+      ],
+      "tags": [
+        "english",
+        "answerable"
+      ],
+      "scope": "current",
+      "rationale": "AI-authored labels judged only against saved excerpts, not entire linked documents; no human adjudication."
+    },
+    {
+      "id": "pub-q4",
+      "question": "人工智能风险管理框架是自愿使用的吗？",
+      "relevant_snapshot_ids": [
+        "pub-voluntary"
+      ],
+      "tags": [
+        "chinese",
+        "cross_language",
+        "answerable"
+      ],
+      "scope": "current",
+      "rationale": "AI-authored labels judged only against saved excerpts, not entire linked documents; no human adjudication."
+    },
+    {
+      "id": "pub-q5",
+      "question": "AI RMF 是哪天发布的？",
+      "relevant_snapshot_ids": [
+        "pub-launch"
+      ],
+      "tags": [
+        "chinese",
+        "date",
+        "answerable"
+      ],
+      "scope": "current",
+      "rationale": "AI-authored labels judged only against saved excerpts, not entire linked documents; no human adjudication."
+    },
+    {
+      "id": "pub-q6",
+      "question": "软件安全实践希望减少什么？",
+      "relevant_snapshot_ids": [
+        "pub-ssdf"
+      ],
+      "tags": [
+        "chinese",
+        "cross_language",
+        "answerable"
+      ],
+      "scope": "current",
+      "rationale": "AI-authored labels judged only against saved excerpts, not entire linked documents; no human adjudication."
+    },
+    {
+      "id": "pub-q7",
+      "question": "AI RMF certification price per company?",
+      "relevant_snapshot_ids": [],
+      "tags": [
+        "no_answer",
+        "topic_overlap"
+      ],
+      "scope": "current",
+      "rationale": "AI-authored labels judged only against saved excerpts, not entire linked documents; no human adjudication."
+    },
+    {
+      "id": "pub-q8",
+      "question": "How many vulnerabilities exactly will software practices eliminate?",
+      "relevant_snapshot_ids": [],
+      "tags": [
+        "no_answer",
+        "overclaim"
+      ],
+      "scope": "current",
+      "rationale": "AI-authored labels judged only against saved excerpts, not entire linked documents; no human adjudication."
+    },
+    {
+      "id": "pub-q9",
+      "question": "木星卫星数量是多少",
+      "relevant_snapshot_ids": [],
+      "tags": [
+        "no_answer",
+        "no_overlap"
+      ],
+      "scope": "current",
+      "rationale": "AI-authored labels judged only against saved excerpts, not entire linked documents; no human adjudication."
+    }
+  ]
+}
