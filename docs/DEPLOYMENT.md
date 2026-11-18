@@ -55,3 +55,8 @@ CI 的 `docker-smoke` 对 SQLite/PostgreSQL 分别构建真实 API/Worker/Web �
 `scripts/docker_smoke.py` 只允许一次性 GitHub-hosted runner，结束时仅删除本次随机项目的 volume。不要移除保护后在用户机器运行。本地工作区无 Docker 时，不把静态检查声称为 Docker 验收；实际结果看该提交 CI。这个 smoke 不验证真实供应商/SMTP、用户机器端口或生产库备份，也不替代完整业务与灾备验收。
 
 Docker internal 网络在部分引擎上不发布宿主机端口，CI 因此从 API 容器通过私有 Compose 网络真实 HTTP 访问 Web 和 API 代理。它验证服务间网络，但不声称验证宿主机 127.0.0.1 端口发布。
+
+
+## 已有部署升级
+
+部署已有数据前必须先执行[集成升级顺序与回退检查](INTEGRATION-20261118.md)：停API/worker、验证备份、副本升级，再恢复服务。Docker入口迁移没有自动备份，0011 downgrade会删除投递期限，不是无损回退。

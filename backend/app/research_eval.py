@@ -44,7 +44,7 @@ def seed(db, data):
     for row in data['documents']:
         aid = row['article']
         if db.get(Article, aid) is None:
-            db.add(Source(id=aid, name=aid, url=row.get('source_url', f'https://example.invalid/{aid}'),
+            db.add(Source(id=aid, name=row.get('source_attribution', aid), url=row.get('source_url', f'https://example.invalid/{aid}'),
                           kind='rss', enabled=row.get('enabled', True)))
             db.flush()
             db.add(Article(id=aid, source_id=aid, canonical_url=row.get('source_url', f'https://example.invalid/{aid}'),
@@ -65,9 +65,11 @@ def seed(db, data):
     db.flush()
     for position, sid in enumerate(data['historical_snapshot_ids']):
         snap = db.get(Snapshot, sid)
+        article = db.get(Article, snap.article_id)
+        source = db.get(Source, article.source_id)
         db.add(BriefItem(brief_id='history', position=position, article_id=snap.article_id,
-                        snapshot_id=sid, title=snap.title, summary='', source_name='synthetic',
-                        source_url='https://example.invalid', topic='其他', evidence_quote=snap.text,
+                        snapshot_id=sid, title=snap.title, summary='', source_name=source.name,
+                        source_url=article.canonical_url, topic='其他', evidence_quote=snap.text,
                         quote_start=0, quote_end=len(snap.text), verification='exact', relevance_reason='fixture'))
     db.commit()
 

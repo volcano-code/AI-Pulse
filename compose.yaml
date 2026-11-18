@@ -1,4 +1,5 @@
-# Supplied configuration only. Docker execution remains unverified in this delivery.
+# Isolated Docker CI covers build/restart/persistence; user deployment remains unverified.
+# Existing deployments: stop API/worker and back up first; see docs/INTEGRATION-20261118.md.
 x-pulse-environment: &pulse-environment
   DATABASE_URL: sqlite:////app/data/live.db
   DATA_MODE: live

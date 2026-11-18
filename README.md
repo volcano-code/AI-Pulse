@@ -58,6 +58,8 @@ SMTP 必须显式配置固定收件人及 TLS；文件 `file_written` 不是邮�
 
 ## 3. Docker Compose 部署
 
+已有数据的部署升级前，先阅读[集成升级与回退边界](docs/INTEGRATION-20261118.md)：停止API/worker并验证备份后再迁移；Docker不提供启动器的自动SQLite备份。
+
 参见 [部署与故障排查](docs/DEPLOYMENT.md)。不要把 `-p` 直接传给 `docker`，也不要依赖丢失的 shell 函数。
 
 ```bash
