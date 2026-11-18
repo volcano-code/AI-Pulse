@@ -1,0 +1,70 @@
+{
+  "version": 1,
+  "repository": "volcano-code/AI-Pulse",
+  "reviewed_on": "2026-11-18",
+  "main_base": "2ebcb4a494e22f2e68df09b8bd345324c4142130",
+  "stack_tip": "99f3f863a0fe52339ad271e0db6a703dfe8c944a",
+  "pull_requests": [
+    {
+      "number": 24,
+      "head": "0deae815c1a948f2b0a780fc01f734032f70084c",
+      "base_sha": "2ebcb4a494e22f2e68df09b8bd345324c4142130"
+    },
+    {
+      "number": 25,
+      "head": "276fb0687ba5c7ddc956d14ee36030161d210714",
+      "base_sha": "0deae815c1a948f2b0a780fc01f734032f70084c"
+    },
+    {
+      "number": 26,
+      "head": "6ccaa68a6a3999e47233ab766961200f978167ce",
+      "base_sha": "276fb0687ba5c7ddc956d14ee36030161d210714"
+    },
+    {
+      "number": 27,
+      "head": "502bea7985d36412811452eee63be10777ceb214",
+      "base_sha": "6ccaa68a6a3999e47233ab766961200f978167ce"
+    },
+    {
+      "number": 28,
+      "head": "ea9bb6ebf87c3da76f5496d4ae88eaa90c72ba3a",
+      "base_sha": "502bea7985d36412811452eee63be10777ceb214"
+    },
+    {
+      "number": 29,
+      "head": "9b25c90d6131bea61624413b4e6fcaa3ef98bd25",
+      "base_sha": "ea9bb6ebf87c3da76f5496d4ae88eaa90c72ba3a"
+    },
+    {
+      "number": 30,
+      "head": "64f4f07a5d1cfc105ad4e013a31ad07bdb8cf193",
+      "base_sha": "9b25c90d6131bea61624413b4e6fcaa3ef98bd25"
+    },
+    {
+      "number": 31,
+      "head": "57626e9d19ec91cd5ac1b107b984c0a5f07f142a",
+      "base_sha": "64f4f07a5d1cfc105ad4e013a31ad07bdb8cf193"
+    },
+    {
+      "number": 32,
+      "head": "5a79f82be37d2c7395f1d9c67ac500297ec22e8e",
+      "base_sha": "57626e9d19ec91cd5ac1b107b984c0a5f07f142a"
+    },
+    {
+      "number": 33,
+      "head": "dafc57af2b1af706bc502f23844f3120ac99fdef",
+      "base_sha": "5a79f82be37d2c7395f1d9c67ac500297ec22e8e"
+    },
+    {
+      "number": 34,
+      "head": "458b9a6850f1648ce6e71b86acd4193d2ba02789",
+      "base_sha": "dafc57af2b1af706bc502f23844f3120ac99fdef"
+    },
+    {
+      "number": 35,
+      "head": "99f3f863a0fe52339ad271e0db6a703dfe8c944a",
+      "base_sha": "458b9a6850f1648ce6e71b86acd4193d2ba02789"
+    }
+  ],
+  "publication": "integration branch targets main; existing PRs preserved; no merge or deployment"
+}

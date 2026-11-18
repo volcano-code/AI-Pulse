@@ -68,6 +68,25 @@ def build_scope(db, brief_id: str | None, mode: str, limit: int = 1000) -> Retri
     return RetrievalScope(snapshot_ids=ids, brief_id=brief_id, data_mode=mode)
 
 
+
+def original_match_start(value: str, query: set[str]) -> int:
+    """Map the earliest casefolded match back to a Python Unicode offset.
+
+    Casefold can expand one original character (İ/ß) into several code points.
+    A folded-string index must never be used directly to slice saved evidence.
+    """
+    folded = value.casefold()
+    matches = [position for term in query if (position := folded.find(term)) >= 0]
+    if not matches:
+        return 0
+    target, offset = min(matches), 0
+    for index, character in enumerate(value):
+        offset += len(character.casefold())
+        if offset > target:
+            return index
+    return 0
+
+
 def lexical_candidates(db, question: str, scope: RetrievalScope, limit: int = 50) -> list[dict]:
     if limit < 1 or limit > 100:
         raise ValueError("Invalid lexical candidate limit")
@@ -95,10 +114,9 @@ def lexical_candidates(db, question: str, scope: RetrievalScope, limit: int = 50
             freq = bag[token]
             inverse = math.log(1 + (len(docs) - df[token] + 0.5) / (df[token] + 0.5))
             score += inverse * freq * 2.2 / (freq + 1.2 * (0.25 + 0.75 * sum(bag.values()) / max(1, average)))
-        if score <= 0:
+        if score <= 0 or not snap.text:
             continue
-        positions = [snap.text.casefold().find(t) for t in query if t in snap.text.casefold()]
-        start = max(0, min(positions or [0]) - 70)
+        start = max(0, original_match_start(snap.text, query) - 70)
         ranked.append((score, article, snap, source, start))
     ranked.sort(key=lambda row: (-row[0], row[1].id))
     return [{

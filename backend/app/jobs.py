@@ -44,6 +44,8 @@ def execute_run(session_factory, settings, run_id: str, fetcher=None, model_clie
         if kind == "ingest":
             with session_factory() as db:
                 source_ids = list(db.scalars(select(Source.id).where(Source.enabled.is_(True)).order_by(Source.id)))
+            if not source_ids:
+                raise ValueError("No enabled source; ingestion cannot report fresh content")
             results = []
             for source_id in source_ids:
                 progress("fetch", f"读取来源：{source_id}")

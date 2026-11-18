@@ -1,0 +1,430 @@
+{
+  "version": "synthetic-research-holdout-v4",
+  "provenance": "synthetic",
+  "label_origin": "independent_developer_authored_not_adjudicated",
+  "split": "holdout",
+  "documents": [
+    {
+      "id": "h4_iris_old",
+      "article": "h4_iris",
+      "title": "鸢尾接口旧版",
+      "text": "鸢尾接口v1最多允许同时运行四个任务，失败后不自动重试。",
+      "published_at": "2025-03-01T00:00:00Z",
+      "current": false
+    },
+    {
+      "id": "h4_iris_new",
+      "article": "h4_iris",
+      "title": "鸢尾接口新版",
+      "text": "鸢尾接口v2最多允许同时运行八个任务。它不兼容v1的身份验证字段，失败后仍不自动重试。",
+      "published_at": "2026-03-02T00:00:00Z"
+    },
+    {
+      "id": "h4_cobalt",
+      "article": "h4_cobalt",
+      "title": "钴蓝归档规则",
+      "text": "钴蓝归档器保留日志三十天，每晚执行一次清理。归档内容采用只读存储。",
+      "published_at": "2026-03-01T00:00:00Z"
+    },
+    {
+      "id": "h4_cobalt_trial",
+      "article": "h4_cobalt_trial",
+      "title": "钴蓝试用规则",
+      "text": "钴蓝试用账号只保留日志七天，不适用正式账号的三十天保留期。",
+      "published_at": "2026-03-01T00:00:00Z"
+    },
+    {
+      "id": "h4_fern",
+      "article": "h4_fern",
+      "title": "蕨叶导出器",
+      "text": "蕨叶导出器支持JSON和CSV，不支持PDF。单次导出最多二百条记录。",
+      "published_at": "2026-03-01T00:00:00Z"
+    },
+    {
+      "id": "h4_cairn",
+      "article": "h4_cairn",
+      "title": "Cairn scheduler",
+      "text": "Cairn polls a local queue every 15 minutes. It never fetches remote pages. Failed jobs remain queued for operator review.",
+      "published_at": "2026-03-01T00:00:00Z"
+    },
+    {
+      "id": "h4_osprey",
+      "article": "h4_osprey",
+      "title": "鱼鹰发布记录",
+      "text": "鱼鹰搜索预览版于2026年3月12日发布。预览版只支持英文检索，没有承诺正式版发布日期。",
+      "published_at": "2026-03-12T00:00:00Z"
+    },
+    {
+      "id": "h4_mica",
+      "article": "h4_mica",
+      "title": "云母模型规格",
+      "text": "云母模型有两种配置：小型配置上下文为16K，大型配置上下文为64K。两种配置都只接收文本。",
+      "published_at": "2026-03-01T00:00:00Z"
+    },
+    {
+      "id": "h4_mica_review",
+      "article": "h4_mica_review",
+      "title": "云母外部评估",
+      "text": "外部评估指出云母大型配置在多段引用中偶尔遗漏出处。评估没有测量推理延迟或给出准确率百分比。",
+      "published_at": "2026-03-01T00:00:00Z"
+    },
+    {
+      "id": "h4_drift",
+      "article": "h4_drift",
+      "title": "浮舟离线检索",
+      "text": "浮舟离线检索从设备中的索引读取证据，返回匹配片段及出处，不生成总结。",
+      "published_at": "2026-03-01T00:00:00Z"
+    }
+  ],
+  "historical_snapshot_ids": [
+    "h4_iris_old"
+  ],
+  "cases": [
+    {
+      "id": "h4_v2_capacity",
+      "question": "鸢尾v2允许多少个任务同时运行？",
+      "relevant_snapshot_ids": [
+        "h4_iris_new"
+      ],
+      "tags": [
+        "version",
+        "quantity",
+        "answerable"
+      ],
+      "scope": "current",
+      "rationale": "当前版明确最大八个任务。"
+    },
+    {
+      "id": "h4_v1_history",
+      "question": "鸢尾v1当时最多并行几个任务？",
+      "relevant_snapshot_ids": [
+        "h4_iris_old"
+      ],
+      "tags": [
+        "version",
+        "quantity",
+        "temporal"
+      ],
+      "scope": "historical",
+      "rationale": "历史范围包含v1四个任务的原文。"
+    },
+    {
+      "id": "h4_v1_current",
+      "question": "鸢尾v1最多并行几个任务？",
+      "relevant_snapshot_ids": [],
+      "tags": [
+        "version",
+        "temporal",
+        "no_answer",
+        "lexical_overlap"
+      ],
+      "scope": "current",
+      "rationale": "当前v2提到v1字段兼容性但没有v1容量，旧快照不在当前范围。"
+    },
+    {
+      "id": "h4_compatibility",
+      "question": "鸢尾v2兼容v1身份验证字段吗？",
+      "relevant_snapshot_ids": [
+        "h4_iris_new"
+      ],
+      "tags": [
+        "version",
+        "negation",
+        "answerable"
+      ],
+      "scope": "current",
+      "rationale": "当前快照明确不兼容，不能把v1出现误当作越界证据。"
+    },
+    {
+      "id": "h4_retry",
+      "question": "鸢尾接口失败后会自动重试吗？",
+      "relevant_snapshot_ids": [
+        "h4_iris_new"
+      ],
+      "tags": [
+        "negation",
+        "no_query_number",
+        "answerable"
+      ],
+      "scope": "current",
+      "rationale": "当前版明确仍不自动重试，问题不必带版本号。"
+    },
+    {
+      "id": "h4_unreleased",
+      "question": "鸢尾v3最多并行多少任务？",
+      "relevant_snapshot_ids": [],
+      "tags": [
+        "version",
+        "no_answer",
+        "lexical_overlap"
+      ],
+      "scope": "current",
+      "rationale": "没有v3资料，不能以v2容量回答。"
+    },
+    {
+      "id": "h4_retention",
+      "question": "钴蓝正式账号保留日志多少天？",
+      "relevant_snapshot_ids": [
+        "h4_cobalt"
+      ],
+      "tags": [
+        "quantity",
+        "chinese_numeral",
+        "answerable"
+      ],
+      "scope": "current",
+      "rationale": "归档规则给出三十天，试用文明确它是正式账号期限。"
+    },
+    {
+      "id": "h4_compare",
+      "question": "钴蓝正式账号和试用账号的日志保留期相差多少天？",
+      "relevant_snapshot_ids": [
+        "h4_cobalt",
+        "h4_cobalt_trial"
+      ],
+      "tags": [
+        "comparison",
+        "multi_document",
+        "chinese_numeral"
+      ],
+      "scope": "current",
+      "rationale": "三十天与七天支持相差二十三天，需对照两类账号规则。"
+    },
+    {
+      "id": "h4_30_trial",
+      "question": "钴蓝试用账号也保留日志30天吗？",
+      "relevant_snapshot_ids": [
+        "h4_cobalt_trial"
+      ],
+      "tags": [
+        "negation",
+        "numeric_variant",
+        "answerable"
+      ],
+      "scope": "current",
+      "rationale": "原文明确七天而非正式账号的三十天，阿拉伯30对应中文三十。"
+    },
+    {
+      "id": "h4_readonly",
+      "question": "钴蓝归档内容是否允许修改？",
+      "relevant_snapshot_ids": [
+        "h4_cobalt"
+      ],
+      "tags": [
+        "negation",
+        "no_query_number",
+        "answerable"
+      ],
+      "scope": "current",
+      "rationale": "只读存储直接回答不可修改，无需在问题里给数字。"
+    },
+    {
+      "id": "h4_cleanup_time",
+      "question": "钴蓝每晚具体几点执行清理？",
+      "relevant_snapshot_ids": [],
+      "tags": [
+        "date_time",
+        "no_answer",
+        "lexical_overlap"
+      ],
+      "scope": "current",
+      "rationale": "只说每晚一次，未给时钟时间。"
+    },
+    {
+      "id": "h4_export_limit",
+      "question": "蕨叶单次最多导出200条记录吗？",
+      "relevant_snapshot_ids": [
+        "h4_fern"
+      ],
+      "tags": [
+        "numeric_variant",
+        "chinese_numeral",
+        "answerable"
+      ],
+      "scope": "current",
+      "rationale": "二百与200是同一数量。"
+    },
+    {
+      "id": "h4_pdf",
+      "question": "蕨叶支持PDF导出吗？",
+      "relevant_snapshot_ids": [
+        "h4_fern"
+      ],
+      "tags": [
+        "negation",
+        "answerable"
+      ],
+      "scope": "current",
+      "rationale": "原文明确不支持PDF。"
+    },
+    {
+      "id": "h4_export_bytes",
+      "question": "蕨叶单次导出的文件最大多少MB？",
+      "relevant_snapshot_ids": [],
+      "tags": [
+        "quantity",
+        "no_answer",
+        "lexical_overlap"
+      ],
+      "scope": "current",
+      "rationale": "记录条数不是文件字节大小，语料没有MB限制。"
+    },
+    {
+      "id": "h4_queue_period",
+      "question": "Cairn多久检查一次本地队列？",
+      "relevant_snapshot_ids": [
+        "h4_cairn"
+      ],
+      "tags": [
+        "cross_language",
+        "quantity",
+        "answerable"
+      ],
+      "scope": "current",
+      "rationale": "英文every 15 minutes支持十五分钟。"
+    },
+    {
+      "id": "h4_remote",
+      "question": "Cairn每15分钟会抓取远程网页吗？",
+      "relevant_snapshot_ids": [
+        "h4_cairn"
+      ],
+      "tags": [
+        "negation",
+        "cross_language",
+        "number"
+      ],
+      "scope": "current",
+      "rationale": "周期属于本地队列检查，原文明示never fetches remote pages。"
+    },
+    {
+      "id": "h4_queue_capacity",
+      "question": "Cairn最多允许排队15个任务吗？",
+      "relevant_snapshot_ids": [],
+      "tags": [
+        "quantity",
+        "number_role",
+        "no_answer",
+        "lexical_overlap"
+      ],
+      "scope": "current",
+      "rationale": "15是轮询分钟数，不是队列容量。"
+    },
+    {
+      "id": "h4_release_date",
+      "question": "鱼鹰搜索预览版是哪天发布的？",
+      "relevant_snapshot_ids": [
+        "h4_osprey"
+      ],
+      "tags": [
+        "date",
+        "answerable"
+      ],
+      "scope": "current",
+      "rationale": "正文明确2026年3月12日。"
+    },
+    {
+      "id": "h4_release_iso",
+      "question": "2026-03-12发布的鱼鹰预览版支持什么语言？",
+      "relevant_snapshot_ids": [
+        "h4_osprey"
+      ],
+      "tags": [
+        "date_variant",
+        "answerable"
+      ],
+      "scope": "current",
+      "rationale": "ISO日期与原文中文日期一致，只支持英文。"
+    },
+    {
+      "id": "h4_release_future",
+      "question": "鱼鹰正式版会在2026年4月1日发布吗？",
+      "relevant_snapshot_ids": [],
+      "tags": [
+        "date",
+        "no_answer",
+        "lexical_overlap"
+      ],
+      "scope": "current",
+      "rationale": "没有正式版承诺日期，不能根据预览版发布时间推断。"
+    },
+    {
+      "id": "h4_context_compare",
+      "question": "云母大型配置的上下文是否是小型配置的四倍？",
+      "relevant_snapshot_ids": [
+        "h4_mica"
+      ],
+      "tags": [
+        "comparison",
+        "number",
+        "answerable"
+      ],
+      "scope": "current",
+      "rationale": "64K与16K支持四倍，不要求原文直接出现四倍。"
+    },
+    {
+      "id": "h4_mica_review",
+      "question": "云母大型配置规格和外部评估发现的引用问题分别是什么？",
+      "relevant_snapshot_ids": [
+        "h4_mica",
+        "h4_mica_review"
+      ],
+      "tags": [
+        "multi_document",
+        "no_query_number",
+        "answerable"
+      ],
+      "scope": "current",
+      "rationale": "需规格中的64K和评估中的遗漏出处两份证据。"
+    },
+    {
+      "id": "h4_accuracy",
+      "question": "云母大型配置准确率达到99%了吗？",
+      "relevant_snapshot_ids": [],
+      "tags": [
+        "quantity",
+        "no_answer",
+        "lexical_overlap"
+      ],
+      "scope": "current",
+      "rationale": "评估明确没有准确率百分比，不能推定99%。"
+    },
+    {
+      "id": "h4_latency",
+      "question": "云母大型配置生成一条回答需要多少秒？",
+      "relevant_snapshot_ids": [],
+      "tags": [
+        "quantity",
+        "no_answer",
+        "lexical_overlap"
+      ],
+      "scope": "current",
+      "rationale": "没有延迟测量。"
+    },
+    {
+      "id": "h4_offline",
+      "question": "浮舟离线检索返回什么？",
+      "relevant_snapshot_ids": [
+        "h4_drift"
+      ],
+      "tags": [
+        "no_query_number",
+        "answerable"
+      ],
+      "scope": "current",
+      "rationale": "明确返回匹配片段及出处且不生成总结。"
+    },
+    {
+      "id": "h4_drift_price",
+      "question": "浮舟离线检索一年订阅费多少元？",
+      "relevant_snapshot_ids": [],
+      "tags": [
+        "quantity",
+        "no_answer",
+        "lexical_overlap"
+      ],
+      "scope": "current",
+      "rationale": "没有任何价格信息。"
+    }
+  ]
+}

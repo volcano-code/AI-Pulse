@@ -1,0 +1,289 @@
+{
+  "version": "synthetic-development-v3",
+  "provenance": "synthetic",
+  "label_origin": "developer_authored_not_adjudicated",
+  "split": "development",
+  "documents": [
+    {
+      "id": "dev-cloud",
+      "article": "dev-cloud",
+      "title": "苍穹模型",
+      "text": "苍穹模型采用低秩适配训练，支持离线部署。",
+      "current": true,
+      "published_at": "2026-01-01T00:00:00Z"
+    },
+    {
+      "id": "dev-eval",
+      "article": "dev-eval",
+      "title": "苍穹评测",
+      "text": "独立评测指出苍穹模型长文本推理容易遗漏条件。",
+      "current": true,
+      "published_at": "2026-01-01T00:00:00Z"
+    },
+    {
+      "id": "dev-price-old",
+      "article": "dev-price",
+      "title": "红杉服务",
+      "text": "红杉服务在2025年每月收费三十元。",
+      "current": false,
+      "published_at": "2026-01-01T00:00:00Z"
+    },
+    {
+      "id": "dev-price-new",
+      "article": "dev-price",
+      "title": "红杉服务",
+      "text": "红杉服务在2026年每月收费五十元。",
+      "current": true,
+      "published_at": "2026-01-01T00:00:00Z"
+    },
+    {
+      "id": "dev-tools",
+      "article": "dev-tools",
+      "title": "Tool execution",
+      "text": "The toolkit executes functions with retry limits.",
+      "current": true,
+      "published_at": "2026-01-01T00:00:00Z"
+    },
+    {
+      "id": "dev-bay",
+      "article": "dev-bay",
+      "title": "海湾数据集",
+      "text": "海湾数据集包含一千条中文问答。",
+      "current": true,
+      "published_at": "2026-01-01T00:00:00Z"
+    },
+    {
+      "id": "dev-stone",
+      "article": "dev-stone",
+      "title": "石桥评测",
+      "text": "石桥评测使用人工审核评判答案是否受原文支持。",
+      "current": true,
+      "published_at": "2026-01-01T00:00:00Z"
+    },
+    {
+      "id": "dev-version",
+      "article": "dev-version",
+      "title": "松针版本",
+      "text": "松针软件版本2.4修复缓存错误。",
+      "current": true,
+      "published_at": "2026-01-01T00:00:00Z"
+    }
+  ],
+  "historical_snapshot_ids": [
+    "dev-price-old"
+  ],
+  "cases": [
+    {
+      "id": "dev-01",
+      "question": "低秩适配训练",
+      "relevant_snapshot_ids": [
+        "dev-cloud"
+      ],
+      "tags": [
+        "chinese"
+      ],
+      "scope": "current",
+      "rationale": "Developer-authored synthetic label, not independently adjudicated."
+    },
+    {
+      "id": "dev-02",
+      "question": "苍穹模型的部署方式是什么",
+      "relevant_snapshot_ids": [
+        "dev-cloud"
+      ],
+      "tags": [
+        "chinese",
+        "paraphrase"
+      ],
+      "scope": "current",
+      "rationale": "Developer-authored synthetic label, not independently adjudicated."
+    },
+    {
+      "id": "dev-03",
+      "question": "苍穹模型的优缺点",
+      "relevant_snapshot_ids": [
+        "dev-cloud",
+        "dev-eval"
+      ],
+      "tags": [
+        "cross_source"
+      ],
+      "scope": "current",
+      "rationale": "Developer-authored synthetic label, not independently adjudicated."
+    },
+    {
+      "id": "dev-04",
+      "question": "海湾数据集有多少中文问答",
+      "relevant_snapshot_ids": [
+        "dev-bay"
+      ],
+      "tags": [
+        "chinese"
+      ],
+      "scope": "current",
+      "rationale": "Developer-authored synthetic label, not independently adjudicated."
+    },
+    {
+      "id": "dev-05",
+      "question": "石桥评测如何审核答案",
+      "relevant_snapshot_ids": [
+        "dev-stone"
+      ],
+      "tags": [
+        "chinese"
+      ],
+      "scope": "current",
+      "rationale": "Developer-authored synthetic label, not independently adjudicated."
+    },
+    {
+      "id": "dev-06",
+      "question": "retry limits",
+      "relevant_snapshot_ids": [
+        "dev-tools"
+      ],
+      "tags": [
+        "english"
+      ],
+      "scope": "current",
+      "rationale": "Developer-authored synthetic label, not independently adjudicated."
+    },
+    {
+      "id": "dev-07",
+      "question": "工具重试次数限制",
+      "relevant_snapshot_ids": [
+        "dev-tools"
+      ],
+      "tags": [
+        "cross_language"
+      ],
+      "scope": "current",
+      "rationale": "Developer-authored synthetic label, not independently adjudicated."
+    },
+    {
+      "id": "dev-08",
+      "question": "红杉服务月费",
+      "relevant_snapshot_ids": [
+        "dev-price-old"
+      ],
+      "tags": [
+        "temporal"
+      ],
+      "scope": "historical",
+      "rationale": "Developer-authored synthetic label, not independently adjudicated."
+    },
+    {
+      "id": "dev-09",
+      "question": "红杉服务月费",
+      "relevant_snapshot_ids": [
+        "dev-price-new"
+      ],
+      "tags": [
+        "temporal"
+      ],
+      "scope": "current",
+      "rationale": "Developer-authored synthetic label, not independently adjudicated."
+    },
+    {
+      "id": "dev-10",
+      "question": "松针软件修复了什么",
+      "relevant_snapshot_ids": [
+        "dev-version"
+      ],
+      "tags": [
+        "chinese"
+      ],
+      "scope": "current",
+      "rationale": "Developer-authored synthetic label, not independently adjudicated."
+    },
+    {
+      "id": "dev-11",
+      "question": "苍穹模型售价多少钱",
+      "relevant_snapshot_ids": [],
+      "tags": [
+        "no_answer",
+        "topic_overlap"
+      ],
+      "scope": "current",
+      "rationale": "Developer-authored synthetic label, not independently adjudicated."
+    },
+    {
+      "id": "dev-12",
+      "question": "海湾数据集的许可证是什么",
+      "relevant_snapshot_ids": [],
+      "tags": [
+        "no_answer",
+        "topic_overlap"
+      ],
+      "scope": "current",
+      "rationale": "Developer-authored synthetic label, not independently adjudicated."
+    },
+    {
+      "id": "dev-13",
+      "question": "石桥评测发布机构是谁",
+      "relevant_snapshot_ids": [],
+      "tags": [
+        "no_answer",
+        "topic_overlap"
+      ],
+      "scope": "current",
+      "rationale": "Developer-authored synthetic label, not independently adjudicated."
+    },
+    {
+      "id": "dev-14",
+      "question": "松针软件版本3.0功能",
+      "relevant_snapshot_ids": [],
+      "tags": [
+        "no_answer",
+        "temporal"
+      ],
+      "scope": "current",
+      "rationale": "Developer-authored synthetic label, not independently adjudicated."
+    },
+    {
+      "id": "dev-15",
+      "question": "五十元",
+      "relevant_snapshot_ids": [],
+      "tags": [
+        "no_answer",
+        "temporal"
+      ],
+      "scope": "historical",
+      "rationale": "Developer-authored synthetic label, not independently adjudicated."
+    },
+    {
+      "id": "dev-16",
+      "question": "极地海豚寿命",
+      "relevant_snapshot_ids": [],
+      "tags": [
+        "no_answer",
+        "no_overlap"
+      ],
+      "scope": "current",
+      "rationale": "Developer-authored synthetic label, not independently adjudicated."
+    },
+    {
+      "id": "dev-17",
+      "question": "苍穹模型不支持离线部署吗",
+      "relevant_snapshot_ids": [
+        "dev-cloud"
+      ],
+      "tags": [
+        "chinese",
+        "negation"
+      ],
+      "scope": "current",
+      "rationale": "Developer-authored synthetic label, not independently adjudicated."
+    },
+    {
+      "id": "dev-18",
+      "question": "海湾数据集一千条问答的下载地址",
+      "relevant_snapshot_ids": [],
+      "tags": [
+        "no_answer",
+        "high_overlap"
+      ],
+      "scope": "current",
+      "rationale": "Developer-authored synthetic label, not independently adjudicated."
+    }
+  ]
+}

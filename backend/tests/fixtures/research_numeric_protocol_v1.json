@@ -1,0 +1,16 @@
+{
+  "version": "numeric-compatibility-v1",
+  "k": 5,
+  "candidates": [
+    "baseline",
+    "reject_disjoint",
+    "require_all"
+  ],
+  "extraction": "ASCII digit sequences with dotted components, exact text identity; no Chinese number conversion, date arithmetic, unit conversion or semantic inference",
+  "reject_disjoint": "Keep when query has no numbers, document has no numbers, or their numeric atom sets intersect",
+  "require_all": "Keep iff every query numeric atom occurs in snapshot title plus full text",
+  "selection": "On development only, maximize no-answer retrieval abstention subject to no reduction in macro Recall@5 or any answerable case recall; tie choose candidate order",
+  "application": "Post-filter actual lexical top-5, no rerank or refill, no production behavior change",
+  "freeze": "Independent holdout and this protocol fixed before first v4 evaluation; no use of v3 holdout for tuning",
+  "deployment_bar": "No deployment claim from synthetic evaluation; expose individual losses and keep baseline unless reliable evidence warrants separate review"
+}

@@ -2,15 +2,20 @@
 from __future__ import annotations
 
 import json
+import math
 from pathlib import Path
 from sqlalchemy import select
 from .models import Article
 from .retrieval import build_scope, lexical_candidates
 
 
+def validate_k(k: int) -> None:
+    if type(k) is not int or k < 1:
+        raise ValueError("k must be a positive integer")
+
+
 def recall_at_k(ranked_ids: list[str], relevant_ids: set[str], k: int) -> float:
-    if k < 1:
-        raise ValueError("k must be positive")
+    validate_k(k)
     if not relevant_ids:
         raise ValueError("relevant_ids must not be empty")
     return len(set(ranked_ids[:k]) & relevant_ids) / len(relevant_ids)
@@ -26,8 +31,19 @@ def reciprocal_rank(ranked_ids: list[str], relevant_ids: set[str]) -> float:
 
 
 def evaluate_cases(cases: list[dict], search, *, k: int = 20) -> dict:
+    validate_k(k)
     if not cases:
         raise ValueError("cases must not be empty")
+    # Validate the whole answerable set before executing any search. No-answer
+    # cases need a separate abstention metric, not fabricated Recall/MRR labels.
+    seen = set()
+    for case in cases:
+        cid = case.get("id")
+        if not isinstance(cid, str) or not cid.strip() or cid in seen:
+            raise ValueError("Invalid or duplicate retrieval case ID")
+        seen.add(cid)
+        if not case.get("relevant_snapshot_ids"):
+            raise ValueError("relevant_snapshot_ids must not be empty")
     recalls, rrs, details = [], [], []
     for case in cases:
         relevant = set(case["relevant_snapshot_ids"])
@@ -69,6 +85,7 @@ def resolve_cases(db, dataset: dict, *, data_mode: str) -> list[dict]:
 
 
 def evaluate_lexical_dataset(db, dataset: dict, *, data_mode: str, k: int = 20) -> dict:
+    validate_k(k)
     cases = resolve_cases(db, dataset, data_mode=data_mode)
     scope = build_scope(db, None, data_mode)
     def search(question: str):
@@ -80,6 +97,11 @@ def evaluate_lexical_dataset(db, dataset: dict, *, data_mode: str, k: int = 20) 
 
 
 def assert_thresholds(result: dict, *, min_recall: float, min_mrr: float) -> None:
+    # NaN compares false in both directions and otherwise silently passes gates.
+    for name, value in (("recall_at_k", result["recall_at_k"]), ("mrr", result["mrr"]),
+                        ("min_recall", min_recall), ("min_mrr", min_mrr)):
+        if type(value) not in (int, float) or not 0 <= value <= 1 or not math.isfinite(value):
+            raise ValueError(f"{name} must be a finite number between 0 and 1")
     if result["recall_at_k"] < min_recall:
         raise AssertionError(f"Recall@{result['k']} {result['recall_at_k']:.3f} < {min_recall:.3f}")
     if result["mrr"] < min_mrr:

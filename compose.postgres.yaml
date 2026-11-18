@@ -1,4 +1,5 @@
-# PostgreSQL + pgvector release-candidate override. CI must still prove migration/concurrency.
+# PostgreSQL + pgvector override; isolated CI covers migrations/concurrency, not user production data.
+# Stop writers and verify a database backup before upgrades; see docs/INTEGRATION-20261118.md.
 services:
   postgres:
     image: pgvector/pgvector:0.8.6-pg17

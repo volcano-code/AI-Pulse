@@ -165,6 +165,43 @@ def test_job_persists_progress(seeded):
         assert [e["stage"] for e in r.events][-1]=="done"
 
 
+def test_local_ingest_without_enabled_sources_fails_without_fetching(tmp_path):
+    from app.config import Settings
+    from app.db import Base, make_database
+
+    settings = Settings(_env_file=None, database_url=f"sqlite:///{tmp_path / 'live.db'}",
+                        data_mode="live", llm_mode="extractive", task_mode="local")
+    engine, factory = make_database(settings)
+
+    class NoNetworkFetcher:
+        calls = 0
+
+        def fetch(self, url):
+            self.calls += 1
+            raise AssertionError("Disabled sources must never be fetched")
+
+    fetcher = NoNetworkFetcher()
+    try:
+        Base.metadata.create_all(engine)
+        bootstrap(factory, settings)
+        with factory.begin() as db:
+            for source in db.scalars(select(Source)):
+                source.enabled = False
+        run_id = new_run(factory, "ingest")
+        execute_run(factory, settings, run_id, fetcher=fetcher)
+        assert fetcher.calls == 0
+        with factory() as db:
+            run = db.get(Run, run_id)
+            assert run.status == "failed"
+            assert run.active_key is None
+            assert run.finished_at is not None
+            assert run.error.startswith("ValueError:")
+            assert not any(event["stage"] == "done" for event in run.events)
+        assert new_run(factory, "ingest")  # The failed attempt releases the workspace.
+    finally:
+        engine.dispose()
+
+
 def test_completed_job_not_reexecuted(seeded):
     f=seeded.app.state.session_factory;s=seeded.app.state.settings
     rid=new_run(f,"brief");execute_run(f,s,rid);execute_run(f,s,rid)

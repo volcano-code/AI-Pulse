@@ -1,9 +1,43 @@
-# v0.4 后续硬门禁
+# AI-Pulse 后续开发门槛
 
-1. 在可联网环境完成 `npm install` 并提交真实 `package-lock.json`，随后改 CI 为 `npm ci`，跑 `typecheck + next build + Playwright`。
-2. 在可联网环境重新运行三个真实来源 canary；逐源核对发布时间、URL、更新、重复与真实快照。
-3. 在 Docker/PostgreSQL 环境执行 0001→0004 迁移、重启、并发 Worker 与持久卷验收；通过后再考虑 pgvector。
-4. 构建事件聚类冻结标注集，至少覆盖同事件多来源、版本升级、同名不同产品、中文/英文标题；报告 pairwise precision/recall。
-5. 事件层质量稳定后实现 Hybrid RAG：Postgres FTS/BM25-like + Embedding + RRF，保留词项检索基线并做 Recall@20 对照。
-6. 用户显式配置真实模型后，仅做单条 canary：结构化输出、usage、超时未知状态、审核门禁；不自动重试可能计费的未知请求。
-7. LangGraph、MCP/Skills、多租户继续后置；只有在真实闭环和检索评测通过后引入。
+以当前代码和 [本轮记录](BASELINE-AND-STATUS.md) 为准。旧 v0.4 清单中 lockfile、Next build CI、pgvector、Hybrid RAG 和原生浏览器 CI 已实现，不重复列为待开发。
+
+## 0/1：基线与部署状态（本轮）
+
+- 冻结基线、重跑后端；修正文档与 `/status` 的能力/配置混淆。
+- 提供不依赖 shell 函数的 Compose v2 启动及失败提示。
+- 新代码仍须 exact-commit CI；PR26 已通过隔离 SQLite/PostgreSQL Docker smoke，用户本机/生产验收仍未完成。
+
+## 2：采集与简报闭环
+
+本批先修复无来源采集误报成功与计划日报跨日入队，见 [回归与剩余缺口](RELIABILITY-STAGE2.md)。继续在干净环境验证真实来源、过滤/去重/来源均衡、审核、导出和文件投递；0010 已补新 durable 采集 attempt 的租约恢复关联，历史无 owner 记录需单独诊断。来源不可用时不拿 replay 数据冒充。
+
+## 3：引用可信度
+
+已修 Unicode 引用偏移与无证据边界，见 [证据门槛记录](RESEARCH-EVIDENCE-GATES.md)。继续冻结中文检索与摘要评测集，包含无答案、过期资料、跨来源问题；对比 lexical 与 hybrid。记录 Recall、引用支持率、无依据回答及延迟，测基线后冻结阈值。工具权限、提示注入隔离和重复/中断流程需测试。
+
+## 4：真实服务与成本
+
+显式配置并授权小额 LLM/Embedding/SMTP canary。补金额预算、使用量映射和长时间运行观测。现有调用审计和未知阻断不等于服务商无重复计费，不等于货币预算。不要自动使用密钥或发送测试邮件。
+
+## 5：产品体验
+
+完善空态/错误态、移动端、来源快照、任务与配置状态，扩充原生浏览器旅程。界面不可将“支持”呈现为“当前在线/已经验收”。
+
+## 6：可靠性与发布
+
+在授权的测试部署完成备份/恢复、迁移、重启恢复、认证与出站边界检查；测试失败如实保留。先交付单用户本机产品，不直接承诺多租户和公网生产安全。
+
+## 7：求职展示
+
+形成架构、演示、实测检索/恢复/延迟/成本报告及面试设计取舍。每项指标标记实测、fixture 或未验收；LangGraph、MCP、多 Agent 不作为先行堆栈目标。
+
+阶段3已增加[离线研究评测基线](RESEARCH-EVALUATION.md)，保留中文跨语言与无答案词汇重叠失败；真实 embedding 和独立人工语义评审仍未执行。
+
+阶段3新增[开发/留出检索权衡实验](RETRIEVAL-TRADEOFFS.md)：预设覆盖率过滤损害有答案召回，决定维持生产检索，不把拒答率提升包装为语义修复。
+
+新增[数字兼容性新留出实验](NUMERIC-RETRIEVAL-EXPERIMENT.md)。数字词面过滤也有有答案召回损失，未上线；下一步优先独立标签裁决和语义评审，勿继续针对已曝光合成题叠加特判。
+
+阶段3新增[版本化AI临时标注裁决流程](ANNOTATION-WORKFLOW.md)，三处歧义保留原标签并另存建议及最小充分证据集；尚未执行人类或独立语义裁决。
+
+新增[NIST真实公开短摘录评测入口](PUBLIC-EVIDENCE-EVALUATION.md)：分离public_excerpts来源、保留许可依据与真实引用URL；仅43词/9题离线冒烟测试，不等于真实embedding或人类语义验收。

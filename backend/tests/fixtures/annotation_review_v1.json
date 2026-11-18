@@ -1,0 +1,130 @@
+{
+  "schema_version": 1,
+  "reviews": [
+    {
+      "schema_version": 1,
+      "source": "development_v4",
+      "source_version": "synthetic-development-v4",
+      "source_sha256": "01d21875f72369f82e30f96a54da05b02b4e885c6f47364e688b066464c8e1a4",
+      "version": "ai-provisional-review-v1",
+      "rubric_version": "evidence-support-v1",
+      "status": "ai_provisional",
+      "reviewer_kind": "ai",
+      "human_review_completed": false,
+      "decisions": [
+        {
+          "case_id": "n-dev-11",
+          "question": "镜湖方案多少钱每月",
+          "original_relevant_snapshot_ids": [],
+          "proposed_relevant_snapshot_ids": [
+            "n-dev-lake"
+          ],
+          "sufficient_evidence_sets": [
+            [
+              "n-dev-lake"
+            ]
+          ],
+          "evidence": [
+            {
+              "snapshot_id": "n-dev-lake",
+              "start": 0,
+              "end": 16,
+              "quote": "镜湖方案免费开放，支持人工审核。",
+              "role": "direct"
+            }
+          ],
+          "reason": "原文免费开放在当前文本描述下支持无需付费；原无答案标签过于严格。不能推出永久免费或所有附加服务收费情况。",
+          "provisional_answer": "按保存的当前方案描述，无需付费；没有独立的月费或未来收费承诺。",
+          "answer_scope": "仅保存方案的当前开放费用，不推断未来订阅、税费或附加服务。",
+          "falsification_condition": "如果问题要求某个未覆盖月份、附加服务费用，或全文存在免费仅限试用/另收订阅费的限定，则此充分证据判定不成立。"
+        }
+      ]
+    },
+    {
+      "schema_version": 1,
+      "source": "holdout_v4",
+      "source_version": "synthetic-research-holdout-v4",
+      "source_sha256": "84087fe46ccc5dce1cf16d49fd4151574cc79837c7041e4bc4c7bc54217cb25b",
+      "version": "ai-provisional-review-v1",
+      "rubric_version": "evidence-support-v1",
+      "status": "ai_provisional",
+      "reviewer_kind": "ai",
+      "human_review_completed": false,
+      "decisions": [
+        {
+          "case_id": "h4_retention",
+          "question": "钴蓝正式账号保留日志多少天？",
+          "original_relevant_snapshot_ids": [
+            "h4_cobalt"
+          ],
+          "proposed_relevant_snapshot_ids": [
+            "h4_cobalt",
+            "h4_cobalt_trial"
+          ],
+          "sufficient_evidence_sets": [
+            [
+              "h4_cobalt_trial"
+            ]
+          ],
+          "evidence": [
+            {
+              "snapshot_id": "h4_cobalt",
+              "start": 0,
+              "end": 33,
+              "quote": "钴蓝归档器保留日志三十天，每晚执行一次清理。归档内容采用只读存储。",
+              "role": "supporting_context"
+            },
+            {
+              "snapshot_id": "h4_cobalt_trial",
+              "start": 0,
+              "end": 29,
+              "quote": "钴蓝试用账号只保留日志七天，不适用正式账号的三十天保留期。",
+              "role": "direct"
+            }
+          ],
+          "reason": "试用规则明确指出正式账号三十天，可单独支持正式账号问题；归档器规则提供同值背景但未单独指明账号类型。原相关集合漏掉直接支持文档。",
+          "provisional_answer": "正式账号保留日志三十天。",
+          "answer_scope": "同一钴蓝账号体系及所保存规则；不推其他版本或实际删除时刻。",
+          "falsification_condition": "若正式账号的三十天仅为被否定的错误说法，或两文不属于同一账号体系/时期，则直接支持判定应撤销。"
+        },
+        {
+          "case_id": "h4_compare",
+          "question": "钴蓝正式账号和试用账号的日志保留期相差多少天？",
+          "original_relevant_snapshot_ids": [
+            "h4_cobalt",
+            "h4_cobalt_trial"
+          ],
+          "proposed_relevant_snapshot_ids": [
+            "h4_cobalt",
+            "h4_cobalt_trial"
+          ],
+          "sufficient_evidence_sets": [
+            [
+              "h4_cobalt_trial"
+            ]
+          ],
+          "evidence": [
+            {
+              "snapshot_id": "h4_cobalt",
+              "start": 0,
+              "end": 33,
+              "quote": "钴蓝归档器保留日志三十天，每晚执行一次清理。归档内容采用只读存储。",
+              "role": "supporting_context"
+            },
+            {
+              "snapshot_id": "h4_cobalt_trial",
+              "start": 0,
+              "end": 29,
+              "quote": "钴蓝试用账号只保留日志七天，不适用正式账号的三十天保留期。",
+              "role": "direct"
+            }
+          ],
+          "reason": "试用规则同时给出试用七天和正式三十天，有限确定算术30-7=23；不需要强制两文同时命中。归档规则仍是相关背景。",
+          "provisional_answer": "正式账号比试用账号多保留二十三天（30−7）。",
+          "answer_scope": "仅保留期长度之差，不推清理执行时间、业务日或服务保证。",
+          "falsification_condition": "若七天和三十天采用不同时间单位/计数规则，或题目要求实际删除时间差而非保留期长度，简单相减不足。"
+        }
+      ]
+    }
+  ]
+}

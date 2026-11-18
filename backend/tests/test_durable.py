@@ -244,3 +244,103 @@ def test_daily_stale_date_is_not_silently_delivered(durable_client):
     with f() as db:
         assert db.get(Run, rid).status == 'failed'
         assert db.scalar(select(func.count()).select_from(Delivery)) == 0
+
+
+@pytest.mark.parametrize('zone', ['UTC', 'Asia/Shanghai'])
+@pytest.mark.parametrize('scheduled', [True, False])
+@pytest.mark.parametrize('send', [True, False])
+def test_daily_crossing_midnight_does_not_enqueue_late_scheduled_edition(durable_client, monkeypatch, zone, scheduled, send):
+    from datetime import datetime, time, timezone
+    from zoneinfo import ZoneInfo
+    import app.durable as durable
+
+    f, s = env(durable_client)
+    tz = ZoneInfo(zone)
+    day = utcnow().astimezone(tz).date()
+    midnight = datetime.combine(day + timedelta(days=1), time.min, tzinfo=tz)
+    clock = [midnight.astimezone(timezone.utc) - timedelta(seconds=1)]
+    monkeypatch.setattr(durable, 'utcnow', lambda: clock[0])
+    request = {'send': send}
+    if scheduled:
+        request.update(local_date=day.isoformat(), timezone=zone)
+    rid = enqueue(f, 'daily', s, request=request)
+    lease = claim(f, s)
+    real_build = durable.build_brief
+
+    def cross_midnight(*args, **kwargs):
+        result = real_build(*args, **kwargs)
+        clock[0] += timedelta(seconds=2)  # lease remains valid; only planned day changes
+        return result
+
+    monkeypatch.setattr(durable, 'build_brief', cross_midnight)
+    execute(f, s, lease)
+    with f() as db:
+        run = db.get(Run, rid)
+        assert run.status == ('failed' if scheduled else 'succeeded')
+        assert run.checkpoint['brief']['brief_id']  # completed work is retained, never billed again
+        assert db.get(Brief, run.checkpoint['brief']['brief_id']) is not None
+        assert not run.checkpoint['model_in_flight']
+        assert db.scalar(select(func.count()).select_from(Delivery)) == (1 if send and not scheduled else 0)
+        assert run.finished_at and run.lease_token is None and run.active_key is None
+    assert claim(f, s) is None
+
+
+def test_schedule_guard_uses_local_date_not_utc_date(monkeypatch):
+    from datetime import datetime, timezone
+    import app.durable as durable
+
+    request = {'local_date': '2026-11-18', 'timezone': 'Asia/Shanghai'}
+    for instant in ('2026-11-17T23:59:59+00:00', '2026-11-18T00:00:01+00:00'):
+        now = datetime.fromisoformat(instant)
+        monkeypatch.setattr(durable, 'utcnow', lambda: now)
+        durable.check_scheduled_day('daily', request)
+
+
+def test_stale_scheduled_checkpoint_retained_without_regeneration(durable_client, monkeypatch):
+    import app.durable as durable
+
+    f, s = env(durable_client)
+    brief = build_brief(f, s)
+    rid = enqueue(f, 'daily', s, request={'send': True, 'local_date': '2000-01-01', 'timezone': 'UTC'})
+    with f.begin() as db:
+        db.get(Run, rid).checkpoint = {'brief': brief, 'model_in_flight': False}
+    def forbidden(*args, **kwargs):
+        pytest.fail('Already completed brief must not be regenerated')
+    monkeypatch.setattr(durable, 'build_brief', forbidden)
+    execute(f, s, claim(f, s))
+    with f() as db:
+        run = db.get(Run, rid)
+        assert run.status == 'failed' and run.checkpoint['brief'] == brief
+        assert 'Scheduled day has passed' in run.error
+        assert db.scalar(select(func.count()).select_from(Delivery)) == 0
+
+
+def test_completed_live_branch_crossing_midnight_is_not_unknown(durable_client, monkeypatch):
+    from datetime import datetime, time, timezone
+    import app.durable as durable
+
+    f, s = env(durable_client)
+    completed = build_brief(f, s)  # extractive fixture, never a provider call
+    day = utcnow().date()
+    clock = [datetime.combine(day + timedelta(days=1), time.min, tzinfo=timezone.utc) - timedelta(seconds=1)]
+    monkeypatch.setattr(durable, 'utcnow', lambda: clock[0])
+    live_branch = s.model_copy(update={'llm_mode': 'live'})
+    rid = enqueue(f, 'daily', live_branch, request={'send': True, 'local_date': day.isoformat(), 'timezone': 'UTC'})
+    calls = []
+
+    def completed_model_stub(*args, **kwargs):
+        calls.append(True)
+        with f() as db:
+            assert db.get(Run, rid).checkpoint['model_in_flight'] is True
+        clock[0] += timedelta(seconds=2)
+        return completed
+
+    monkeypatch.setattr(durable, 'build_brief', completed_model_stub)
+    execute(f, live_branch, claim(f, live_branch))
+    with f() as db:
+        run = db.get(Run, rid)
+        assert run.status == 'failed', 'Completed model outcome is known, not needs_attention'
+        assert run.checkpoint['model_in_flight'] is False
+        assert run.checkpoint['brief'] == completed
+        assert db.scalar(select(func.count()).select_from(Delivery)) == 0
+    assert calls == [True] and claim(f, live_branch) is None

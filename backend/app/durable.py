@@ -13,7 +13,7 @@ from sqlalchemy.exc import IntegrityError
 from .briefing import build_brief
 from .process_fetcher import ProcessFetcher
 from .ingestion import fetch_source
-from .models import Run, Source, Workspace
+from .models import FetchRun, Run, Source, Workspace
 from .timeutil import iso, parse_time, utcnow
 
 
@@ -23,6 +23,18 @@ class LeaseLost(RuntimeError):
 
 class RetryableJob(RuntimeError):
     pass
+
+
+class ScheduledDayExpired(ValueError):
+    pass
+
+
+def check_scheduled_day(kind, request):
+    if kind == 'daily' and request.get('local_date'):
+        from zoneinfo import ZoneInfo
+        today = utcnow().astimezone(ZoneInfo(request['timezone'])).date().isoformat()
+        if today != request['local_date']:
+            raise ScheduledDayExpired('Scheduled day has passed; no late edition was queued')
 
 
 class QueueFull(RuntimeError):
@@ -95,6 +107,14 @@ def recover_expired(factory, settings, now=None):
             ).values(status='recovering'))
             if not changed.rowcount:
                 continue
+            # Recovery won the conditional parent write. Close only this old
+            # attempt's unfinished fetches in the same transaction, without
+            # changing source health or any successfully committed evidence.
+            db.execute(update(FetchRun).where(
+                FetchRun.job_run_id == run_id, FetchRun.job_lease_token == token,
+                FetchRun.status == 'running'
+            ).values(status='interrupted', finished_at=iso(now),
+                     error='Worker lease expired; fetch outcome was not committed.'))
             run = db.get(Run, run_id)
             # Paid request may have completed remotely, even with no local acknowledgement.
             uncertain = bool(run.checkpoint.get('model_in_flight'))
@@ -209,11 +229,7 @@ def execute(factory, settings, lease, fetcher=None, model_client=None):
             with factory() as db:
                 run = db.get(Run, lease.run_id)
                 kind, request, saved = run.kind, dict(run.request), dict(run.checkpoint)
-            if kind == 'daily' and request.get('local_date'):
-                from zoneinfo import ZoneInfo
-                today = utcnow().astimezone(ZoneInfo(request['timezone'])).date().isoformat()
-                if today != request['local_date']:
-                    raise ValueError('Scheduled day has passed; do not silently send a late edition')
+            check_scheduled_day(kind, request)
             source_results = list(saved.get('sources', []))
             if kind in {'ingest', 'daily'} and settings.data_mode == 'live' and not saved.get('ingestion_done'):
                 with factory() as db:
@@ -225,7 +241,8 @@ def execute(factory, settings, lease, fetcher=None, model_client=None):
                     if by_id.get(source_id, {}).get('status') == 'succeeded':
                         continue
                     event('fetch', f'Reading configured source: {source_id}')
-                    result = fetch_source(factory, source_id, settings, fetcher or ProcessFetcher(settings), commit_guard=guard)
+                    result = fetch_source(factory, source_id, settings, fetcher or ProcessFetcher(settings), commit_guard=guard,
+                                          job_run_id=lease.run_id, job_lease_token=lease.token)
                     by_id[source_id] = result
                     checkpoint('sources', list(by_id.values()))
                 source_results = [by_id[source_id] for source_id in ids]
@@ -243,12 +260,21 @@ def execute(factory, settings, lease, fetcher=None, model_client=None):
             with factory.begin() as db:
                 fence(db, lease)
                 run = db.get(Run, lease.run_id)
+                # Fetch/model work can cross midnight while this lease is valid.
+                # Recheck the frozen schedule date before committing any outbox entry.
+                check_scheduled_day(kind, request)
                 result = {'sources': source_results}
                 if brief_result:
                     result.update(brief_result)
                 if kind == 'daily' and request.get('send') and brief_result and brief_result['items']:
                     # Durable job completion and outbox insertion commit together.
-                    delivery = enqueue_delivery(db, brief_result['brief_id'], settings)
+                    deadline = None
+                    if request.get('local_date'):
+                        from datetime import date
+                        from .scheduler import due_instant
+                        next_day = date.fromisoformat(request['local_date']) + timedelta(days=1)
+                        deadline = iso(due_instant(next_day, '00:00', request['timezone']))
+                    delivery = enqueue_delivery(db, brief_result['brief_id'], settings, expires_at=deadline)
                     result['delivery_id'] = delivery.id
                     result['delivery_status'] = delivery.status
                 elif kind == 'daily' and request.get('send'):
@@ -268,6 +294,8 @@ def execute(factory, settings, lease, fetcher=None, model_client=None):
                 run.status = 'needs_attention' if uncertain else 'queued' if retry else 'failed'
                 run.available_at = iso(utcnow() + timedelta(seconds=settings.retry_base_seconds * 2 ** max(0, run.attempts - 1)))
                 run.error = ('Model outcome may have incurred charges; manual inspection required.' if uncertain
+                             else 'Scheduled day has passed; no late edition was queued. Completed work is retained.'
+                             if isinstance(exc, ScheduledDayExpired)
                              else f'{type(exc).__name__}: pipeline failed; inspect source status and configuration.')
                 run.finished_at = None if retry else iso(utcnow())
                 run.active_key = run.lease_token = run.lease_until = None

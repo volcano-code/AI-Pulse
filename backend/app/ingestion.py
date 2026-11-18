@@ -61,7 +61,10 @@ def ingest_entries(db, source: Source, entries: list[Entry], mode: str) -> dict:
     return counts
 
 
-def fetch_source(session_factory, source_id: str, settings: Settings, fetcher, commit_guard=None) -> dict:
+def fetch_source(session_factory, source_id: str, settings: Settings, fetcher, commit_guard=None,
+                 job_run_id=None, job_lease_token=None) -> dict:
+    if (job_run_id is None) != (job_lease_token is None) or (job_run_id is not None and commit_guard is None):
+        raise ValueError("Durable fetch ownership requires job, attempt token and commit guard")
     if settings.data_mode != "live":
         raise ValueError("Network ingestion is disabled in replay mode")
     with session_factory.begin() as db:
@@ -70,7 +73,7 @@ def fetch_source(session_factory, source_id: str, settings: Settings, fetcher, c
         source = db.get(Source, source_id)
         if source is None or not source.enabled:
             return {"source_id": source_id, "status": "skipped"}
-        attempt = FetchRun(source_id=source.id)
+        attempt = FetchRun(source_id=source.id, job_run_id=job_run_id, job_lease_token=job_lease_token)
         db.add(attempt)
         db.flush()
         attempt_id, url, kind = attempt.id, source.url, source.kind

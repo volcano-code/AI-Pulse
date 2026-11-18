@@ -1,5 +1,5 @@
 from uuid import uuid4
-from sqlalchemy import Boolean, Float, ForeignKey, Integer, JSON, String, Text, UniqueConstraint
+from sqlalchemy import Index, Boolean, Float, ForeignKey, Integer, JSON, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 from .db import Base
 from .timeutil import iso, utcnow
@@ -82,6 +82,9 @@ class EventVersion(Base):
 
 class FetchRun(Base):
     __tablename__ = "fetch_runs"
+    __table_args__ = (Index("ix_fetch_runs_job_attempt", "job_run_id", "job_lease_token", "status"),)
+    job_run_id: Mapped[str | None] = mapped_column(ForeignKey("runs.id"), nullable=True)
+    job_lease_token: Mapped[str | None] = mapped_column(String(36), nullable=True)
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uid)
     source_id: Mapped[str] = mapped_column(ForeignKey("sources.id"))
     started_at: Mapped[str] = mapped_column(String(40), default=now)
@@ -165,6 +168,7 @@ class DailySchedule(Base):
 
 
 class Delivery(Base):
+    expires_at: Mapped[str | None] = mapped_column(String(40), nullable=True)
     __tablename__ = "deliveries"
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uid)
     brief_id: Mapped[str] = mapped_column(ForeignKey("briefs.id"), index=True)
